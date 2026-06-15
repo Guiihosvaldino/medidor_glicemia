@@ -101,17 +101,17 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Aponta exatamente para a pasta onde estão seus arquivos de estilo CSS
+# Garanta que o caminho aponte para a pasta static dentro do seu app glicemia
 STATICFILES_DIRS = [
     BASE_DIR / 'glicemia' / 'static',
 ]
 
-# Configuração simplificada e estável para o WhiteNoise no Django 6
+# Configuração estável e oficial do WhiteNoise para o Django 6 entregar o CSS diretamente
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
