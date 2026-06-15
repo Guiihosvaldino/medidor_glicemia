@@ -30,14 +30,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Adicione esta linha abaixo se quiser que o Render sirva os arquivos estáticos de forma ultra eficiente:
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # <-- Garanta que esta linha está aqui!
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # ... as outras linhas continuam iguais
 ]
 
 ROOT_URLCONF = 'core.urls'
