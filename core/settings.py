@@ -18,6 +18,13 @@ DEBUG = False
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'medidor-glicemia.onrender.com']
 CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com']
 
+# Origens confiáveis para CSRF (garanta que está exatamente assim)
+CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com']
+
+# Segurança extra para Cookies em Produção
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
