@@ -15,7 +15,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'sua-chave-secreta-local-padrao')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.render.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'medidor-glicemia.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com']
 
 # Application definition
 INSTALLED_APPS = [
