@@ -101,12 +101,13 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Garanta que o caminho aponte para a pasta static dentro do seu app glicemia
-STATICFILES_DIRS = [
-    BASE_DIR / 'glicemia' / 'static',
+# Remova o STATICFILES_DIRS antigo se ele estiver apontando para caminhos internos duplicados
+# Vamos deixar apenas a diretriz padrão de busca automática de aplicativos ativa
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
 
-# Configuração estável e oficial do WhiteNoise para o Django 6 entregar o CSS diretamente
+# Configuração estável de produção (sem o Manifest rígido que causa Erro 500)
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
