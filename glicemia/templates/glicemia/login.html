@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Controle de Glicose</title>
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}">
+</head>
+
+<body>
+    <div class="bg-animated"></div>
+
+    <div class="auth-page">
+        <div class="auth-glass-card">
+
+            <!-- Left: Branding -->
+            <div class="auth-branding">
+                <div class="brand-logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm-1 15.5a4 4 0 0 1-3.5-4c0-.3.2-.5.5-.5s.5.2.5.5a3 3 0 0 0 2.5 3c.3 0 .5.2.5.5s-.2.5-.5.5z" />
+                        </svg>
+                    </div>
+                    <h1>Controle de<br>Glicose</h1>
+                </div>
+
+                <div class="brand-tagline">
+                    <div class="tag-line1">Monitoramento</div>
+                    <div class="tag-line2">da sua Glicose</div>
+                </div>
+
+                <p class="brand-description">
+                    Seu Diário de Glicemia. Monitoramento Prático, Resultados Claros, Cuidado Inteligente.
+                    Exporte relatórios PDF fáceis para o seu médico.
+                    Comece agora e tenha o controle na sua mão.
+                </p>
+            </div>
+
+            <!-- Divider -->
+            <div class="auth-divider"></div>
+
+            <!-- Right: Login Form -->
+            <div class="auth-form-panel">
+                <h2>Login</h2>
+
+                {% if messages %}
+                {% for message in messages %}
+                <div
+                    class="mensagem {% if message.tags == 'success' %}msg-sucesso{% elif message.tags == 'warning' %}msg-aviso{% else %}msg-erro{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <form method="POST" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="seu@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name="senha" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                </form>
+
+                <p class="auth-footer">
+                    Não tem uma conta? <a href="{% url 'cadastro' %}">Cadastre-se</a>
+                </p>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

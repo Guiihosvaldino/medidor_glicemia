@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Controle de Glicose</title>
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}">
+</head>
+<body>
+    <div class="bg-animated"></div>
+
+    <div class="dashboard-layout">
+        
+        <!-- Header -->
+        <header>
+            <div class="header-brand">
+                <div class="logo-icon-sm">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm-1 15.5a4 4 0 0 1-3.5-4c0-.3.2-.5.5-.5s.5.2.5.5a3 3 0 0 0 2.5 3c.3 0 .5.2.5.5s-.2.5-.5.5z"/>
+                    </svg>
+                </div>
+                <h1>Olá, <span>{{ request.user.first_name }}</span> 👋</h1>
+            </div>
+            <a href="{% url 'logout' %}" class="btn-logout">
+                ⏻ Sair do Sistema
+            </a>
+        </header>
+
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mensagem {% if message.tags == 'success' %}msg-sucesso{% elif message.tags == 'warning' %}msg-aviso{% else %}msg-erro{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Stats Cards -->
+        <div class="resumo-cards">
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h4>Total de Medições</h4>
+                <p>{{ total_medicoes }}</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">💉</div>
+                <h4>Média do Mês</h4>
+                <p>{{ media_glicose }} <span class="unit">mg/dL</span></p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🧬</div>
+                <h4>Glicada Estimada (A1C)</h4>
+                <p>{{ glicada_estimada }}<span class="unit">%</span></p>
+            </div>
+        </div>
+
+        <!-- Monthly Filter -->
+        <div class="secao">
+            <h3><span class="section-icon">📅</span> Filtro Mensal</h3>
+            <form method="POST" action="{% url 'dashboard' %}" class="form-inline">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Mês</label>
+                    <select name="mes">
+                        <option value="1" {% if mes_selecionado == 1 %}selected{% endif %}>Janeiro</option>
+                        <option value="2" {% if mes_selecionado == 2 %}selected{% endif %}>Fevereiro</option>
+                        <option value="3" {% if mes_selecionado == 3 %}selected{% endif %}>Março</option>
+                        <option value="4" {% if mes_selecionado == 4 %}selected{% endif %}>Abril</option>
+                        <option value="5" {% if mes_selecionado == 5 %}selected{% endif %}>Maio</option>
+                        <option value="6" {% if mes_selecionado == 6 %}selected{% endif %}>Junho</option>
+                        <option value="7" {% if mes_selecionado == 7 %}selected{% endif %}>Julho</option>
+                        <option value="8" {% if mes_selecionado == 8 %}selected{% endif %}>Agosto</option>
+                        <option value="9" {% if mes_selecionado == 9 %}selected{% endif %}>Setembro</option>
+                        <option value="10" {% if mes_selecionado == 10 %}selected{% endif %}>Outubro</option>
+                        <option value="11" {% if mes_selecionado == 11 %}selected{% endif %}>Novembro</option>
+                        <option value="12" {% if mes_selecionado == 12 %}selected{% endif %}>Dezembro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Ano</label>
+                    <input type="number" name="ano" value="{{ ano_selecionado }}" min="2020" max="2030">
+                </div>
+                
+                <button type="submit" class="btn">🔍 Filtrar Dados</button>
+            </form>
+        </div>
+
+        <!-- New Measurement Form -->
+        <div class="secao">
+            <h3><span class="section-icon">➕</span> Registrar Nova Medição</h3>
+            <form method="POST" action="{% url 'nova_medicao' %}" class="form-inline">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Valor (mg/dL)</label>
+                    <input type="number" name="valor" placeholder="Ex: 105" required>
+                </div>
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" name="data" required>
+                </div>
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input type="time" name="hora" required>
+                </div>
+                <div class="form-group">
+                    <label>Momento</label>
+                    <select name="tipo_medicao" required>
+                        <option value="Jejum">Jejum</option>
+                        <option value="Pre-Prandial">Pré-Prandial</option>
+                        <option value="Pos-Prandial">Pós-Prandial</option>
+                        <option value="Antes-Dormir">Antes de Dormir</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Observações</label>
+                    <input type="text" name="notas" placeholder="Ex: Após o almoço">
+                </div>
+                <button type="submit" class="btn btn-primary">💾 Salvar</button>
+            </form>
+        </div>
+
+        <!-- History Table -->
+        <div class="secao">
+            <div class="secao-header">
+                <h3 style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
+                    <span class="section-icon">📋</span> Histórico do Período
+                </h3>
+                <a href="{% url 'exportar_pdf' %}?mes={{ mes_selecionado }}&ano={{ ano_selecionado }}" class="btn-pdf">
+                    📄 Gerar PDF para o Médico
+                </a>
+            </div>
+
+            {% if medicoes %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Valor</th>
+                        <th>Tipo</th>
+                        <th>Notas</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicao in medicoes %}
+                    <tr>
+                        <td data-label="Data">{{ medicao.data|date:"d/m/Y" }}</td>
+                        <td data-label="Hora">{{ medicao.hora|time:"H:i" }}</td>
+                        <td data-label="Valor">
+                            <span class="valor-badge {% if medicao.valor >= 140 %}valor-alto{% else %}valor-normal{% endif %}">
+                                {{ medicao.valor }} mg/dL
+                            </span>
+                        </td>
+                        <td data-label="Tipo">
+                            <span class="tipo-badge">{{ medicao.get_tipo_display }}</span>
+                        </td>
+                        <td data-label="Notas">{{ medicao.notas|default:"—" }}</td>
+                        <td data-label="Ações">
+                            <a href="{% url 'apagar_medicao' medicao.id %}" 
+                               onclick="return confirm('Tem certeza que deseja apagar esta medição?');"
+                               class="btn-excluir">
+                                🗑 Excluir
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <p>Nenhuma medição encontrada para este mês.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</body>
+</html>
