@@ -94,9 +94,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    
-    BASE_DIR / 'glicemia' / 'static' / 'glicemia',
+    BASE_DIR / 'glicemia' / 'static',
 ]
 
-# CONFIGURAÇÃO OBRIGATÓRIA PARA O RENDER COLETAR O SEU CSS:
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
