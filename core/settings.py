@@ -98,10 +98,20 @@ USE_I18N = True
 USE_TZ = True
 
 # Arquivos Estáticos (CSS, JavaScript, Imagens)
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Aponta exatamente para a pasta onde estão seus arquivos de estilo CSS
 STATICFILES_DIRS = [
     BASE_DIR / 'glicemia' / 'static',
 ]
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Configuração simplificada e estável para o WhiteNoise no Django 6
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
