@@ -126,8 +126,10 @@ if os.environ.get('EMAIL_HOST_USER'):
     EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+    EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
     EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
     EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 else:
     # Desenvolvimento Local (imprime o e-mail no terminal para facilitar os testes)
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
