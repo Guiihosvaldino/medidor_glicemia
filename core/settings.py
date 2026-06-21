@@ -13,7 +13,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'sua-chave-secreta-local-padrao')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Em ambiente local (sem a variável RENDER), o DEBUG fica True para carregar o CSS. 
+# Em produção (no Render), ficará False automaticamente.
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'medidor-glicemia.onrender.com']
 CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com']
@@ -116,3 +118,16 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
+
+# Configurações de E-mail (Recuperação de Senha)
+if os.environ.get('EMAIL_HOST_USER'):
+    # Produção (Render)
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+else:
+    # Desenvolvimento Local (imprime o e-mail no terminal para facilitar os testes)
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
