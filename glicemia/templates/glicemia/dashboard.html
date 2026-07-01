@@ -17,15 +17,22 @@
         <!-- Header -->
         <header>
             <div class="header-brand">
-                <div class="logo-icon-sm">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm-1 15.5a4 4 0 0 1-3.5-4c0-.3.2-.5.5-.5s.5.2.5.5a3 3 0 0 0 2.5 3c.3 0 .5.2.5.5s-.2.5-.5.5z" />
-                    </svg>
-                </div>
+                {% if request.user.perfil.foto_perfil %}
+                    <img src="{{ request.user.perfil.foto_perfil.url }}" alt="Foto de Perfil" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid white;">
+                {% else %}
+                    <div class="logo-icon-sm">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm-1 15.5a4 4 0 0 1-3.5-4c0-.3.2-.5.5-.5s.5.2.5.5a3 3 0 0 0 2.5 3c.3 0 .5.2.5.5s-.2.5-.5.5z" />
+                        </svg>
+                    </div>
+                {% endif %}
                 <h1>Olá, <span>{{ request.user.first_name }}</span> 👋</h1>
             </div>
             <div>
+                <a href="{% url 'perfil' %}" class="btn-header-link">
+                    👤 Meu Perfil
+                </a>
                 <a href="{% url 'medicacoes' %}" class="btn-header-link">
                     💊 Minhas Medicações
                 </a>

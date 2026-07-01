@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Controle de Glicose</title>
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}?v={% now 'U' %}">
+</head>
+
+<body>
+    <div class="bg-animated"></div>
+
+    <div class="dashboard-layout" style="max-width: 600px; margin: 50px auto;">
+        
+        <header style="justify-content: center; text-align: center; margin-bottom: 20px;">
+            <div class="header-brand">
+                <h1>Meu <span>Perfil</span> 👤</h1>
+            </div>
+        </header>
+
+        {% if messages %}
+            <div style="margin-bottom: 15px;">
+            {% for message in messages %}
+                <div class="mensagem {% if message.tags == 'success' %}msg-sucesso{% elif message.tags == 'warning' %}msg-aviso{% else %}msg-erro{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="secao" style="text-align: center;">
+            {% if perfil and perfil.foto_perfil %}
+                <img src="{{ perfil.foto_perfil.url }}" alt="Foto de Perfil" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--azul-claro); box-shadow: var(--sombra-card); margin-bottom: 20px;">
+            {% else %}
+                <div style="width: 120px; height: 120px; border-radius: 50%; background-color: #e2e8f0; display: inline-flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; color: #a0aec0; border: 4px solid var(--azul-claro); box-shadow: var(--sombra-card); margin-bottom: 20px;">
+                    {{ user.first_name|first|upper }}
+                </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data" style="margin-bottom: 30px;">
+                {% csrf_token %}
+                <div class="form-group" style="text-align: left;">
+                    <label for="foto_perfil">Atualizar Foto de Perfil:</label>
+                    <input type="file" id="foto_perfil" name="foto_perfil" accept="image/*" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">💾 Salvar Nova Foto</button>
+            </form>
+
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+
+            <div style="text-align: left;">
+                <h3 style="margin-bottom: 15px; color: var(--azul-escuro);">Informações Pessoais</h3>
+                <p style="margin-bottom: 10px;"><strong>Nome:</strong> {{ user.first_name }}</p>
+                <p style="margin-bottom: 10px;"><strong>E-mail:</strong> {{ user.email }}</p>
+                {% if is_medico %}
+                    <p style="margin-bottom: 10px;"><strong>CRM:</strong> {{ perfil.crm }}</p>
+                {% else %}
+                    <p style="margin-bottom: 10px;"><strong>CPF:</strong> {{ perfil.cpf }}</p>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 30px;">
+                <a href="{% if is_medico %}{% url 'dashboard_medico' %}{% else %}{% url 'dashboard' %}{% endif %}" class="btn" style="background-color: #95a5a6;">
+                    ⬅ Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

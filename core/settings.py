@@ -133,3 +133,7 @@ if os.environ.get('EMAIL_HOST_USER'):
 else:
     # Desenvolvimento Local (imprime o e-mail no terminal para facilitar os testes)
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Configuração de arquivos de mídia (Uploads como fotos de perfil)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

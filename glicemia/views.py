@@ -634,3 +634,31 @@ def apagar_taxa_medico_view(request, id, cpf):
     taxa.delete()
     messages.warning(request, 'Taxa de correção excluída com sucesso!')
     return redirect('medicacoes_medico', cpf=cpf)
+
+@login_required(login_url='login')
+def perfil_view(request):
+    user = request.user
+    perfil = None
+    is_medico = False
+    
+    if hasattr(user, 'perfil_medico'):
+        perfil = user.perfil_medico
+        is_medico = True
+    elif hasattr(user, 'perfil'):
+        perfil = user.perfil
+        
+    if request.method == 'POST':
+        if 'foto_perfil' in request.FILES:
+            if perfil:
+                perfil.foto_perfil = request.FILES['foto_perfil']
+                perfil.save()
+                messages.success(request, 'Foto de perfil atualizada com sucesso!')
+            
+        return redirect('perfil')
+        
+    contexto = {
+        'user': user,
+        'perfil': perfil,
+        'is_medico': is_medico
+    }
+    return render(request, 'glicemia/perfil.html', contexto)
