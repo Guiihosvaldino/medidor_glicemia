@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Perfil - Controle de Glicose</title>
+    <title>Meu Perfil - Portal do Médico</title>
     <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}?v={% now 'U' %}">
 </head>
 
@@ -13,10 +13,10 @@
     <div class="bg-animated"></div>
 
     <div class="dashboard-layout" style="max-width: 600px; margin: 50px auto;">
-        
+
         <header style="justify-content: center; text-align: center; margin-bottom: 20px;">
             <div class="header-brand">
-                <h1>Meu <span>Perfil</span> 👤</h1>
+                <h1>Meu <span>Perfil</span> 🩺</h1>
             </div>
         </header>
 
@@ -39,7 +39,7 @@
                 </div>
             {% endif %}
 
-            <form method="POST" action="{% url 'perfil' %}" enctype="multipart/form-data" style="margin-bottom: 30px;">
+            <form method="POST" action="{% url 'perfil_medico' %}" enctype="multipart/form-data" style="margin-bottom: 30px;">
                 {% csrf_token %}
                 <div class="form-group" style="text-align: left;">
                     <label for="foto_perfil">Atualizar Foto de Perfil:</label>
@@ -51,15 +51,15 @@
             <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
 
             <div style="text-align: left;">
-                <h3 style="margin-bottom: 15px; color: var(--azul-escuro);">Informações Pessoais</h3>
-                <p style="margin-bottom: 10px;"><strong>Nome:</strong> {{ user.first_name }}</p>
+                <h3 style="margin-bottom: 15px; color: var(--azul-escuro);">Informações do Profissional</h3>
+                <p style="margin-bottom: 10px;"><strong>Nome:</strong> Dr(a). {{ user.first_name }}</p>
                 <p style="margin-bottom: 10px;"><strong>E-mail:</strong> {{ user.email }}</p>
-                <p style="margin-bottom: 10px;"><strong>CPF:</strong> {{ perfil.cpf }}</p>
+                <p style="margin-bottom: 10px;"><strong>CRM:</strong> {{ perfil.crm }}/{{ perfil.uf }}</p>
             </div>
 
             <div style="margin-top: 30px;">
-                <a href="{% url 'dashboard' %}" class="btn" style="background-color: #95a5a6;">
-                    ⬅ Voltar ao Dashboard
+                <a href="{% url 'dashboard_medico' %}" class="btn" style="background-color: #95a5a6;">
+                    ⬅ Voltar ao Painel Médico
                 </a>
             </div>
         </div>

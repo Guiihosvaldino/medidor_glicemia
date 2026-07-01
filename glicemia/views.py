@@ -454,17 +454,31 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Avg
 
+from django.db.models import Q
+
 def dashboard_medico_view(request):
     cpf_buscado = request.GET.get('cpf')
     paciente = None
     medicoes = []
 
     if cpf_buscado:
-        # Normaliza o CPF removendo caracteres não numéricos
+        # Tenta achar o paciente de várias formas para evitar o erro de cadastro antigo
         cpf_limpo = ''.join(filter(str.isdigit, cpf_buscado))
-        try:
-            perfil = PerfilUsuario.objects.get(cpf=cpf_limpo)
-            user_paciente = perfil.user
+        user_paciente = None
+        
+        if cpf_limpo:
+            perfil = PerfilUsuario.objects.filter(cpf__icontains=cpf_limpo).first()
+            if perfil:
+                user_paciente = perfil.user
+                
+        if not user_paciente:
+            user_paciente = User.objects.filter(
+                Q(username__icontains=cpf_buscado) | 
+                Q(email__icontains=cpf_buscado) |
+                Q(first_name__icontains=cpf_buscado)
+            ).first()
+
+        if user_paciente:
             # Obtém todas as medições desse paciente
             medicoes_qs = Medicao.objects.filter(usuario=user_paciente).order_by('-data', '-hora')
             total = medicoes_qs.count()
@@ -472,35 +486,22 @@ def dashboard_medico_view(request):
             media_val = round(media_val, 2) if media_val else 0
             glicada_estimada = round((media_val + 46.7) / 28.7, 2) if media_val > 0 else 0
 
+            # Descobre o CPF caso exista para exibir
+            cpf_exibir = user_paciente.username
+            if hasattr(user_paciente, 'perfil') and user_paciente.perfil.cpf:
+                cpf_exibir = user_paciente.perfil.cpf
+
             paciente = {
                 'nome': f"{user_paciente.first_name} {user_paciente.last_name}".strip() or user_paciente.username,
-                'cpf': cpf_buscado,
+                'cpf': cpf_exibir,
                 'total_medicoes': total,
                 'media_mes': media_val,
                 'glicada_estimada': glicada_estimada,
+                'user_id': user_paciente.id
             }
             medicoes = medicoes_qs
-        except PerfilUsuario.DoesNotExist:
-            # Caso o CPF não esteja no PerfilUsuario, tenta buscar direto no modelo User (caso já armazenado lá)
-            try:
-                user_paciente = User.objects.get(username=cpf_limpo)
-                medicoes_qs = Medicao.objects.filter(usuario=user_paciente).order_by('-data', '-hora')
-                total = medicoes_qs.count()
-                media_val = medicoes_qs.aggregate(media=Avg('valor'))['media']
-                media_val = round(media_val, 2) if media_val else 0
-                glicada_estimada = round((media_val + 46.7) / 28.7, 2) if media_val > 0 else 0
-                paciente = {
-                    'nome': f"{user_paciente.first_name} {user_paciente.last_name}".strip() or user_paciente.username,
-                    'cpf': cpf_buscado,
-                    'total_medicoes': total,
-                    'media_mes': media_val,
-                    'glicada_estimada': glicada_estimada,
-                }
-                medicoes = medicoes_qs
-            except User.DoesNotExist:
-                messages.error(request, 'Paciente não localizado com este CPF.')
-        except User.DoesNotExist:
-            messages.error(request, 'Paciente não localizado com este CPF.')
+        else:
+            messages.error(request, 'Paciente não localizado. Tente buscar pelo E-mail, Nome ou CPF correto.')
 
     context = {
         'paciente': paciente,
@@ -637,28 +638,44 @@ def apagar_taxa_medico_view(request, id, cpf):
 
 @login_required(login_url='login')
 def perfil_view(request):
+    """Perfil exclusivo do PACIENTE"""
     user = request.user
-    perfil = None
-    is_medico = False
-    
-    if hasattr(user, 'perfil_medico'):
-        perfil = user.perfil_medico
-        is_medico = True
-    elif hasattr(user, 'perfil'):
-        perfil = user.perfil
-        
+    perfil = getattr(user, 'perfil', None)
+
     if request.method == 'POST':
-        if 'foto_perfil' in request.FILES:
-            if perfil:
-                perfil.foto_perfil = request.FILES['foto_perfil']
-                perfil.save()
-                messages.success(request, 'Foto de perfil atualizada com sucesso!')
-            
+        if 'foto_perfil' in request.FILES and perfil:
+            perfil.foto_perfil = request.FILES['foto_perfil']
+            perfil.save()
+            messages.success(request, 'Foto de perfil atualizada com sucesso!')
         return redirect('perfil')
-        
+
     contexto = {
         'user': user,
         'perfil': perfil,
-        'is_medico': is_medico
     }
     return render(request, 'glicemia/perfil.html', contexto)
+
+
+@login_required(login_url='login_medico')
+def perfil_medico_view(request):
+    """Perfil exclusivo do MÉDICO"""
+    user = request.user
+
+    if not hasattr(user, 'perfil_medico'):
+        messages.error(request, 'Acesso restrito a médicos.')
+        return redirect('login_medico')
+
+    perfil = user.perfil_medico
+
+    if request.method == 'POST':
+        if 'foto_perfil' in request.FILES:
+            perfil.foto_perfil = request.FILES['foto_perfil']
+            perfil.save()
+            messages.success(request, 'Foto de perfil atualizada com sucesso!')
+        return redirect('perfil_medico')
+
+    contexto = {
+        'user': user,
+        'perfil': perfil,
+    }
+    return render(request, 'glicemia/perfil_medico.html', contexto)

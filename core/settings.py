@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'glicemia',
 ]
 
@@ -112,12 +114,26 @@ STATICFILES_FINDERS = [
 # Configuração estável de produção (sem o Manifest rígido que causa Erro 500)
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        # Em produção (Render), usa Cloudinary para armazenar uploads permanentemente
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage" if os.environ.get('CLOUDINARY_URL') else "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
+
+# Configuração do Cloudinary (credenciais lidas das variáveis de ambiente no Render)
+# O try/except garante que o servidor local não quebre caso o cloudinary não esteja instalado
+try:
+    import cloudinary  # type: ignore[import]
+    cloudinary.config(
+        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+        api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
+        api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
+        secure=True,
+    )
+except ImportError:
+    pass  # Em desenvolvimento local sem cloudinary instalado, ignora
 
 # Configurações de E-mail (Recuperação de Senha)
 if os.environ.get('EMAIL_HOST_USER'):
