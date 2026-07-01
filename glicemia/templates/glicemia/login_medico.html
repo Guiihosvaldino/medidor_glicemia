@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Médico - Controle de Glicose</title>
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}">
+</head>
+
+<body>
+    <div class="bg-animated"></div>
+
+    <div class="auth-page">
+        <div class="auth-glass-card">
+
+            <div class="auth-branding">
+                <div class="brand-logo">
+                    <div class="logo-icon" style="background: rgba(16, 185, 129, 0.2);">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#10B981">
+                            <path d="M19 10.5h-4.5V6h-5v4.5H5v5h4.5V20h5v-4.5H19v-5z" />
+                        </svg>
+                    </div>
+                    <h1 style="color: #10B981;">Portal do<br>Médico</h1>
+                </div>
+
+                <div class="brand-tagline">
+                    <div class="tag-line1">Acompanhamento</div>
+                    <div class="tag-line2">e Ajuste Clínico</div>
+                </div>
+
+                <p class="brand-description">
+                    Área restrita para profissionais de saúde cadastrados.
+                    Acesse o histórico de medições, relatórios e configure taxas de correção ou insulinas para auxiliar
+                    seus pacientes.
+                </p>
+            </div>
+
+            <div class="auth-divider"></div>
+
+            <div class="auth-form-panel">
+                <h2>Login Médico</h2>
+
+                {% if messages %}
+                {% for message in messages %}
+                <div
+                    class="mensagem {% if message.tags == 'success' %}msg-sucesso{% elif message.tags == 'warning' %}msg-aviso{% else %}msg-erro{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <form method="POST" action="{% url 'login_medico' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="medico@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name="senha" placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" class="btn" style="background: #10B981;">Entrar no Portal</button>
+                    
+                    <div style="text-align: right; margin-top: 10px;">
+                        <a href="{% url 'password_reset' %}" style="font-size: 0.85rem; color: #10B981; text-decoration: none; font-weight: 600;">Esqueci minha senha</a>
+                    </div>
+                </form>
+
+                <p class="auth-footer">
+                    Não tem uma conta médica? <a href="{% url 'cadastro_medico' %}"
+                        style="color: #10B981; font-weight: bold;">Cadastre-se aqui</a>
+                </p>
+
+                <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 20px 0 10px 0;"></div>
+                <div style="text-align: center;">
+                    <a href="{% url 'login' %}"
+                        style="color: #0D9488; font-size: 0.85rem; text-decoration: none;">Voltar para
+                        Login de Paciente</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

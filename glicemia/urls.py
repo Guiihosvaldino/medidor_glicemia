@@ -10,6 +10,16 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('exportar-pdf/', views.exportar_pdf_view, name='exportar_pdf'),
     path('apagar-medicao/<int:id>/', views.apagar_medicao_view, name='apagar_medicao'),
+    path('editar-medicao/<int:id>/', views.editar_medicao_view, name='editar_medicao'),
+    path('medicacoes/', views.medicacoes_view, name='medicacoes'),
+    path('apagar-medicacao/<int:id>/', views.apagar_medicacao_view, name='apagar_medicacao'),
+    path('apagar-taxa/<int:id>/', views.apagar_taxa_view, name='apagar_taxa'),
+    
+    path('medicacoes-medico/<str:cpf>/', views.medicacoes_medico_view, name='medicacoes_medico'),
+    path('apagar-medicacao-medico/<int:id>/<str:cpf>/', views.apagar_medicacao_medico_view, name='apagar_medicacao_medico'),
+    path('apagar-taxa-medico/<int:id>/<str:cpf>/', views.apagar_taxa_medico_view, name='apagar_taxa_medico'),
+    
+
     
     # Recuperação de Senha
     path('recuperar-senha/', 
@@ -39,4 +49,12 @@ urlpatterns = [
              template_name='glicemia/password_reset_complete.html'
          ), 
          name='password_reset_complete'),
-]
+
+
+    path('login-medico/', views.login_medico_view, name='login_medico'),
+    
+    # 2. Garanta que a rota de cadastro do médico está assim:
+    path('cadastro-medico/', views.cadastro_medico_view, name='cadastro_medico'),
+    path('dashboard-medico/', views.dashboard_medico_view, name='dashboard_medico'),
+    path('logout-medico/',views.logout_medico_view, name='logout_medico'),
+]

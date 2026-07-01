@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar Medição</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%);
+            color: #e0e0e0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        h1 { text-align: center; margin-bottom: 1.5rem; font-weight: 600; color: #fff; }
+        .field { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.3rem; font-size: 0.9rem; color: #bbb; }
+        input, select, textarea { width: 100%; padding: 0.6rem 0.8rem; border: none; border-radius: 8px; background: rgba(255,255,255,0.12); color: #fff; font-size: 0.95rem; }
+        input:focus, select:focus, textarea:focus { outline: 2px solid #6c63ff; }
+        .actions { display: flex; justify-content: space-between; margin-top: 1.5rem; }
+        .btn { flex: 1; padding: 0.6rem 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { background: #6c63ff; color:#fff; }
+        .btn-primary:hover { background:#574fdc; }
+        .btn-secondary { background: #444; color:#ddd; margin-left:0.5rem; }
+        .btn-secondary:hover { background:#555; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>Editar Medição</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="field">
+            <label for="data">Data</label>
+            <input type="date" id="data" name="data" value="{{ medicao.data|date:'Y-m-d' }}" required>
+        </div>
+        <div class="field">
+            <label for="hora">Hora</label>
+            <input type="time" id="hora" name="hora" value="{{ medicao.hora|time:'H:i' }}" required>
+        </div>
+        <div class="field">
+            <label for="valor">Valor (mg/dL)</label>
+            <input type="number" step="0.01" id="valor" name="valor" value="{{ medicao.valor }}" required>
+        </div>
+        <div class="field">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" name="tipo" required>
+                {% for key, label in medicao.TIPO_MEDICAO_CHOICES %}
+                    <option value="{{ key }}" {% if medicao.tipo == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label for="observacao">Observação</label>
+            <textarea id="observacao" name="observacao" rows="3">{{ medicao.observacao|default:'' }}</textarea>
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

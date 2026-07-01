@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Profissional - Controle de Glicose</title>
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="bg-animated"></div>
+
+    <div class="dashboard-layout">
+
+        <!-- Header -->
+        <header>
+            <div class="header-brand">
+                <div class="logo-icon-sm">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="white"/>
+                    </svg>
+                </div>
+                <h1>Olá, Dr(a). <span>{{ request.user.first_name }}</span> 🩺</h1>
+            </div>
+            <div>
+                <a href="{% url 'logout_medico' %}" class="btn-logout">
+                    ⏻ Sair do Sistema
+                </a>
+            </div>
+        </header>
+
+        <!-- Search Form -->
+        <div class="secao">
+            <h3><span class="section-icon">🔍</span> Buscar Prontuário do Paciente</h3>
+            <form method="GET" action="{% url 'dashboard_medico' %}" class="form-inline">
+                <div class="form-group" style="flex: 3; margin-bottom: 0;">
+                    <input type="text" name="cpf" placeholder="Digite o CPF do paciente (Apenas números)"
+                        value="{{ cpf_buscado|default:'' }}" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    🔍 Filtrar Dados
+                </button>
+            </form>
+
+            {% if messages %}
+                <div style="margin-top: 15px;">
+                {% for message in messages %}
+                    <div class="mensagem {% if message.tags == 'success' %}msg-sucesso{% elif message.tags == 'warning' %}msg-aviso{% else %}msg-erro{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {% if paciente %}
+        
+        <!-- Paciente Info -->
+        <div class="secao" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Paciente Selecionado</span>
+                <h3 style="margin: 4px 0 0 0; border: none; padding: 0; font-size: 1.4rem;">{{ paciente.nome }}</h3>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 0.8rem; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Identificação</span>
+                <p style="margin: 4px 0 0 0; color: var(--azul-escuro); font-size: 1rem; font-weight: 600;">CPF: {{ paciente.cpf }}</p>
+                <a href="{% url 'medicacoes_medico' paciente.cpf %}" class="btn btn-primary" style="margin-top: 12px; padding: 10px 18px; font-size: 0.85rem; display: inline-flex; width: auto;">
+                    💊 Gerenciar Medicações
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="resumo-cards">
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h4>Total de Medições</h4>
+                <p>{{ paciente.total_medicoes }}</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">💉</div>
+                <h4>Média do Mês</h4>
+                <p>{{ paciente.media_mes }} <span class="unit">mg/dL</span></p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🧬</div>
+                <h4>Glicada Estimada (A1C)</h4>
+                <p>{{ paciente.glicada_estimada }} <span class="unit">%</span></p>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="secao">
+            <div class="secao-header">
+                <div>
+                    <h3 style="margin-bottom: 4px; padding-bottom: 0; border-bottom: none;">
+                        <span class="section-icon">📈</span> Gráfico de Glicemias
+                    </h3>
+                    <p style="font-size: 0.85rem; color: var(--text-light);">Análise detalhada das curvas de glicose nas últimas datas.</p>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 0.8rem; color: var(--text-light); display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Status Clínico Atual</span>
+                    <strong style="font-size: 1.1rem; color: var(--success);">Estável</strong>
+                </div>
+            </div>
+
+            <div style="position: relative; height: 350px; width: 100%; margin-bottom: 30px;">
+                <canvas id="graficoGlicemiaMedico"></canvas>
+            </div>
+
+            <!-- Tempo no alvo -->
+            <div style="border-top: 1px solid rgba(41, 128, 185, 0.12); padding-top: 24px;">
+                <h4 style="margin-bottom: 16px; text-align: center; color: var(--azul-escuro); font-size: 1rem; font-weight: 700;">
+                    Tempo no Alvo (%)
+                </h4>
+                <div style="display: flex; height: 30px; border-radius: var(--radius-pill); overflow: hidden; font-weight: 700; font-size: 0.9rem; color: white; text-align: center; line-height: 30px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="background: var(--warning); width: 46%;" title="Hiperglicemia">46% Alta</div>
+                    <div style="background: var(--success); width: 42%;" title="No Alvo">42% Alvo</div>
+                    <div style="background: var(--danger); width: 12%;" title="Hipoglicemia">12% Baixa</div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const ctx = document.getElementById('graficoGlicemiaMedico').getContext('2d');
+            
+            // Gradient for chart
+            const gradientBg = ctx.createLinearGradient(0, 0, 0, 400);
+            gradientBg.addColorStop(0, 'rgba(41, 128, 185, 0.4)');
+            gradientBg.addColorStop(1, 'rgba(41, 128, 185, 0.0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['09/06', '09/06', '09/06', '10/06', '10/06', '10/06'],
+                    datasets: [{
+                        label: 'Glicose (mg/dL)',
+                        data: [100, 120, 60, 140, 300, 150],
+                        borderColor: '#2980b9',
+                        backgroundColor: gradientBg,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: function (context) {
+                            const value = context.dataset.data[context.dataIndex];
+                            if (value <= 70) return '#e74c3c';   // Hipoglicemia
+                            if (value >= 180) return '#f39c12';  // Hiperglicemia
+                            return '#27ae60';                    // No Alvo
+                        },
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(13, 43, 69, 0.9)',
+                            titleFont: { size: 13, family: "'Inter', sans-serif" },
+                            bodyFont: { size: 14, weight: 'bold', family: "'Inter', sans-serif" },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 400,
+                            grid: { 
+                                color: 'rgba(41, 128, 185, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { family: "'Inter', sans-serif", size: 11 },
+                                color: '#5d6d7e'
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { family: "'Inter', sans-serif", size: 11 },
+                                color: '#5d6d7e'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                }
+            });
+        </script>
+        {% endif %}
+
+    </div>
+</body>
+
+</html>

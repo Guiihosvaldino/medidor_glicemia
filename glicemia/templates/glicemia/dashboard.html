@@ -1,59 +1,49 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Controle de Glicose</title>
-    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}?v={% now 'U' %}">
 </head>
+
 <body>
     <div class="bg-animated"></div>
 
     <div class="dashboard-layout">
-        
+
         <!-- Header -->
         <header>
             <div class="header-brand">
                 <div class="logo-icon-sm">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm-1 15.5a4 4 0 0 1-3.5-4c0-.3.2-.5.5-.5s.5.2.5.5a3 3 0 0 0 2.5 3c.3 0 .5.2.5.5s-.2.5-.5.5z"/>
+                        <path
+                            d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm-1 15.5a4 4 0 0 1-3.5-4c0-.3.2-.5.5-.5s.5.2.5.5a3 3 0 0 0 2.5 3c.3 0 .5.2.5.5s-.2.5-.5.5z" />
                     </svg>
                 </div>
                 <h1>Olá, <span>{{ request.user.first_name }}</span> 👋</h1>
             </div>
-            <a href="{% url 'logout' %}" class="btn-logout">
-                ⏻ Sair do Sistema
-            </a>
+            <div>
+                <a href="{% url 'medicacoes' %}" class="btn-header-link">
+                    💊 Minhas Medicações
+                </a>
+                <a href="{% url 'logout' %}" class="btn-logout">
+                    ⏻ Sair do Sistema
+                </a>
+            </div>
         </header>
 
         <!-- Messages -->
         {% if messages %}
-            {% for message in messages %}
-                <div class="mensagem {% if message.tags == 'success' %}msg-sucesso{% elif message.tags == 'warning' %}msg-aviso{% else %}msg-erro{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <!-- Stats Cards -->
-        <div class="resumo-cards">
-            <div class="card">
-                <div class="card-icon">📊</div>
-                <h4>Total de Medições</h4>
-                <p>{{ total_medicoes }}</p>
-            </div>
-            <div class="card">
-                <div class="card-icon">💉</div>
-                <h4>Média do Mês</h4>
-                <p>{{ media_glicose }} <span class="unit">mg/dL</span></p>
-            </div>
-            <div class="card">
-                <div class="card-icon">🧬</div>
-                <h4>Glicada Estimada (A1C)</h4>
-                <p>{{ glicada_estimada }}<span class="unit">%</span></p>
-            </div>
+        {% for message in messages %}
+        <div
+            class="mensagem {% if message.tags == 'success' %}msg-sucesso{% elif message.tags == 'warning' %}msg-aviso{% else %}msg-erro{% endif %}">
+            {{ message }}
         </div>
+        {% endfor %}
+        {% endif %}
 
         <!-- Monthly Filter -->
         <div class="secao">
@@ -82,9 +72,28 @@
                     <label>Ano</label>
                     <input type="number" name="ano" value="{{ ano_selecionado }}" min="2020" max="2030">
                 </div>
-                
+
                 <button type="submit" class="btn">🔍 Filtrar Dados</button>
             </form>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="resumo-cards">
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h4>Total de Medições</h4>
+                <p>{{ total_medicoes }}</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">💉</div>
+                <h4>Média do Mês</h4>
+                <p>{{ media_glicose }} <span class="unit">mg/dL</span></p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🧬</div>
+                <h4>Glicada Estimada (A1C)</h4>
+                <p>{{ glicada_estimada }}<span class="unit">%</span></p>
+            </div>
         </div>
 
         <!-- New Measurement Form -->
@@ -108,8 +117,8 @@
                     <label>Momento</label>
                     <select name="tipo_medicao" required>
                         <option value="Jejum">Jejum</option>
-                        <option value="Pre-Prandial">Pré-Prandial</option>
-                        <option value="Pos-Prandial">Pós-Prandial</option>
+                        <option value="Pre-Prandial">Antes da refeição</option>
+                        <option value="Pos-Prandial">Após a refeição</option>
                         <option value="Antes-Dormir">Antes de Dormir</option>
                         <option value="Outro">Outro</option>
                     </select>
@@ -151,20 +160,23 @@
                         <td data-label="Data">{{ medicao.data|date:"d/m/Y" }}</td>
                         <td data-label="Hora">{{ medicao.hora|time:"H:i" }}</td>
                         <td data-label="Valor">
-                            <span class="valor-badge {% if medicao.valor >= 140 %}valor-alto{% else %}valor-normal{% endif %}">
+                            <span
+                                class="valor-badge {% if medicao.valor >= 140 %}valor-alto{% else %}valor-normal{% endif %}">
                                 {{ medicao.valor }} mg/dL
                             </span>
                         </td>
-                        <td data-label="Tipo">
-                            <span class="tipo-badge">{{ medicao.get_tipo_display }}</span>
-                        </td>
-                        <td data-label="Notas">{{ medicao.notas|default:"—" }}</td>
-                        <td data-label="Ações">
-                            <a href="{% url 'apagar_medicao' medicao.id %}" 
-                               onclick="return confirm('Tem certeza que deseja apagar esta medição?');"
-                               class="btn-excluir">
-                                🗑 Excluir
-                            </a>
+                        <td data-label="Tipo"><span class="tipo-badge">{{ medicao.get_tipo_display }}</span></td>
+                        <td data-label="Notas">{{ medicao.notes|default:"—" }}</td>
+                        <td data-label="Ações" style="display: flex; gap: 8px; justify-content: flex-end;">
+                            <button type="button" class="btn-editar" onclick="openEditModal(this)"
+                                data-id="{{ medicao.id }}" data-data="{{ medicao.data|date:'Y-m-d' }}"
+                                data-hora="{{ medicao.hora|time:'H:i' }}" data-valor="{{ medicao.valor }}"
+                                data-tipo="{{ medicao.tipo }}" data-notas="{{ medicao.notes|default:'' }}">
+                                ✏️ Editar
+                            </button>
+                            <a href="{% url 'apagar_medicao' medicao.id %}"
+                                onclick="return confirm('Tem certeza que deseja apagar esta medição?');"
+                                class="btn-excluir">🗑 Excluir</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -179,5 +191,84 @@
         </div>
 
     </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEditModal()">✖</button>
+            <h3 style="color: var(--azul-escuro); margin-bottom: 20px;">✏️ Editar Medição</h3>
+
+            <form id="editForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="form-inline">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Valor (mg/dL)</label>
+                        <input type="number" id="edit_valor" name="valor" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Data</label>
+                        <input type="date" id="edit_data" name="data" required>
+                    </div>
+                </div>
+
+                <div class="form-inline">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Hora</label>
+                        <input type="time" id="edit_hora" name="hora" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Momento</label>
+                        <select id="edit_tipo" name="tipo" required>
+                            <option value="Jejum">Jejum</option>
+                            <option value="Pre-Prandial">Antes da refeição</option>
+                            <option value="Pos-Prandial">Após a refeição</option>
+                            <option value="Antes-Dormir">Antes de Dormir</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Observações</label>
+                    <input type="text" id="edit_notas" name="observacao" placeholder="Ex: Após o almoço">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">💾 Salvar
+                    Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(btn) {
+            const id = btn.getAttribute('data-id');
+            const data = btn.getAttribute('data-data');
+            const hora = btn.getAttribute('data-hora');
+            const valor = btn.getAttribute('data-valor');
+            const tipo = btn.getAttribute('data-tipo');
+            const notas = btn.getAttribute('data-notas');
+
+            document.getElementById('edit_valor').value = valor;
+            document.getElementById('edit_data').value = data;
+            document.getElementById('edit_hora').value = hora;
+            document.getElementById('edit_tipo').value = tipo;
+            document.getElementById('edit_notas').value = notas;
+
+            // Define a action do formulário
+            document.getElementById('editForm').action = `/editar-medicao/${id}/`;
+
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        // Fechar ao clicar fora
+        document.getElementById('editModal').addEventListener('click', function (e) {
+            if (e.target === this) closeEditModal();
+        });
+    </script>
 </body>
+
 </html>

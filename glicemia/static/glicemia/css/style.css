@@ -450,8 +450,15 @@ body {
 
 .dashboard-layout {
     max-width: 1200px;
-    margin: 0 auto;
-    padding: 28px 28px 60px;
+    margin: 30px auto;
+    padding: 28px;
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow);
+    animation: cardAppear 0.5s ease;
 }
 
 /* ── Header ── */
@@ -523,6 +530,30 @@ header h1 span {
 .btn-logout:hover {
     background: rgba(231, 76, 60, 0.15);
     border-color: rgba(231, 76, 60, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-header-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(41, 128, 185, 0.08);
+    color: var(--azul-principal);
+    border: 1px solid rgba(41, 128, 185, 0.15);
+    padding: 10px 20px;
+    border-radius: var(--radius-pill);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-right: 12px;
+}
+
+.btn-header-link:hover {
+    background: rgba(41, 128, 185, 0.15);
+    border-color: rgba(41, 128, 185, 0.3);
     transform: translateY(-1px);
 }
 
@@ -776,6 +807,31 @@ tbody tr:last-child td {
     border: 1px solid rgba(41, 128, 185, 0.15);
 }
 
+/* Edit button */
+.btn-editar {
+    appearance: none;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+    color: #d97706;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.btn-editar:hover {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.3);
+    transform: translateY(-1px);
+}
+
 /* Delete button */
 .btn-excluir {
     display: inline-flex;
@@ -945,4 +1001,64 @@ tbody tr:last-child td {
 :focus-visible {
     outline: 2px solid var(--azul-principal);
     outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════
+   MODAL
+   ══════════════════════════════════════════════ */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 43, 69, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow);
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
+    position: relative;
+    animation: slideUp 0.3s ease;
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    color: var(--danger);
+    transform: scale(1.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
