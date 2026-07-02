@@ -455,11 +455,16 @@ from django.contrib.auth.models import User
 from django.db.models import Avg
 
 from django.db.models import Q
+import json
 
 def dashboard_medico_view(request):
     cpf_buscado = request.GET.get('cpf')
     paciente = None
     medicoes = []
+    
+    hoje = datetime.now()
+    mes_selecionado = int(request.GET.get('mes', hoje.month))
+    ano_selecionado = int(request.GET.get('ano', hoje.year))
 
     if cpf_buscado:
         # Tenta achar o paciente de várias formas para evitar o erro de cadastro antigo
@@ -479,12 +484,36 @@ def dashboard_medico_view(request):
             ).first()
 
         if user_paciente:
-            # Obtém todas as medições desse paciente
-            medicoes_qs = Medicao.objects.filter(usuario=user_paciente).order_by('-data', '-hora')
+            # Filtra medições pelo mês e ano selecionados
+            medicoes_qs = Medicao.objects.filter(
+                usuario=user_paciente,
+                data__month=mes_selecionado,
+                data__year=ano_selecionado
+            ).order_by('-data', '-hora')
+            
             total = medicoes_qs.count()
             media_val = medicoes_qs.aggregate(media=Avg('valor'))['media']
             media_val = round(media_val, 2) if media_val else 0
             glicada_estimada = round((media_val + 46.7) / 28.7, 2) if media_val > 0 else 0
+
+            # Calcula Tempo no Alvo dinâmico
+            total_para_alvo = medicoes_qs.count()
+            if total_para_alvo > 0:
+                hipo_count = medicoes_qs.filter(valor__lt=70).count()
+                hiper_count = medicoes_qs.filter(valor__gte=180).count()
+                alvo_count = total_para_alvo - hipo_count - hiper_count
+                pct_hipo = round((hipo_count / total_para_alvo) * 100)
+                pct_hiper = round((hiper_count / total_para_alvo) * 100)
+                pct_alvo = 100 - pct_hipo - pct_hiper
+            else:
+                pct_hipo = 0
+                pct_hiper = 0
+                pct_alvo = 100
+
+            # Prepara dados do gráfico (medições ordenadas por data/hora para o gráfico)
+            medicoes_grafico = medicoes_qs.order_by('data', 'hora')
+            labels_grafico = [f"{m.data.strftime('%d/%m')}" for m in medicoes_grafico]
+            valores_grafico = [m.valor for m in medicoes_grafico]
 
             # Descobre o CPF caso exista para exibir
             cpf_exibir = user_paciente.username
@@ -497,16 +526,28 @@ def dashboard_medico_view(request):
                 'total_medicoes': total,
                 'media_mes': media_val,
                 'glicada_estimada': glicada_estimada,
-                'user_id': user_paciente.id
+                'user_id': user_paciente.id,
+                'pct_hiper': pct_hiper,
+                'pct_alvo': pct_alvo,
+                'pct_hipo': pct_hipo,
             }
             medicoes = medicoes_qs
         else:
+            labels_grafico = []
+            valores_grafico = []
             messages.error(request, 'Paciente não localizado. Tente buscar pelo E-mail, Nome ou CPF correto.')
+    else:
+        labels_grafico = []
+        valores_grafico = []
 
     context = {
         'paciente': paciente,
         'cpf_buscado': cpf_buscado,
         'medicoes': medicoes,
+        'mes_selecionado': mes_selecionado,
+        'ano_selecionado': ano_selecionado,
+        'labels_json': json.dumps(labels_grafico),
+        'valores_json': json.dumps(valores_grafico),
     }
     return render(request, 'glicemia/dashboard_medico.html', context)
 

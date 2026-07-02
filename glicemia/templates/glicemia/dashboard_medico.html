@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel do Profissional - Controle de Glicose</title>
-    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}?v={% now 'U' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -80,6 +80,40 @@
             </div>
         </div>
 
+        <!-- Monthly Filter -->
+        <div class="secao">
+            <h3><span class="section-icon">📅</span> Filtro Mensal</h3>
+            <form method="GET" action="{% url 'dashboard_medico' %}" class="form-inline">
+                <!-- Mantém o CPF buscado como campo hidden -->
+                <input type="hidden" name="cpf" value="{{ cpf_buscado }}">
+                
+                <div class="form-group">
+                    <label>Mês</label>
+                    <select name="mes">
+                        <option value="1" {% if mes_selecionado == 1 %}selected{% endif %}>Janeiro</option>
+                        <option value="2" {% if mes_selecionado == 2 %}selected{% endif %}>Fevereiro</option>
+                        <option value="3" {% if mes_selecionado == 3 %}selected{% endif %}>Março</option>
+                        <option value="4" {% if mes_selecionado == 4 %}selected{% endif %}>Abril</option>
+                        <option value="5" {% if mes_selecionado == 5 %}selected{% endif %}>Maio</option>
+                        <option value="6" {% if mes_selecionado == 6 %}selected{% endif %}>Junho</option>
+                        <option value="7" {% if mes_selecionado == 7 %}selected{% endif %}>Julho</option>
+                        <option value="8" {% if mes_selecionado == 8 %}selected{% endif %}>Agosto</option>
+                        <option value="9" {% if mes_selecionado == 9 %}selected{% endif %}>Setembro</option>
+                        <option value="10" {% if mes_selecionado == 10 %}selected{% endif %}>Outubro</option>
+                        <option value="11" {% if mes_selecionado == 11 %}selected{% endif %}>Novembro</option>
+                        <option value="12" {% if mes_selecionado == 12 %}selected{% endif %}>Dezembro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Ano</label>
+                    <input type="number" name="ano" value="{{ ano_selecionado }}" min="2020" max="2030">
+                </div>
+
+                <button type="submit" class="btn">🔍 Filtrar Mês</button>
+            </form>
+        </div>
+
         <!-- Stats Cards -->
         <div class="resumo-cards">
             <div class="card">
@@ -106,11 +140,19 @@
                     <h3 style="margin-bottom: 4px; padding-bottom: 0; border-bottom: none;">
                         <span class="section-icon">📈</span> Gráfico de Glicemias
                     </h3>
-                    <p style="font-size: 0.85rem; color: var(--text-light);">Análise detalhada das curvas de glicose nas últimas datas.</p>
+                    <p style="font-size: 0.85rem; color: var(--text-light);">Análise detalhada das curvas de glicose no período selecionado.</p>
                 </div>
                 <div style="text-align: right;">
                     <span style="font-size: 0.8rem; color: var(--text-light); display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Status Clínico Atual</span>
-                    <strong style="font-size: 1.1rem; color: var(--success);">Estável</strong>
+                    {% if paciente.media_mes >= 70 and paciente.media_mes <= 180 %}
+                        <strong style="font-size: 1.1rem; color: var(--success);">✅ Estável</strong>
+                    {% elif paciente.media_mes > 180 %}
+                        <strong style="font-size: 1.1rem; color: var(--warning);">⚠️ Hiperglicemia</strong>
+                    {% elif paciente.media_mes > 0 and paciente.media_mes < 70 %}
+                        <strong style="font-size: 1.1rem; color: var(--danger);">🔻 Hipoglicemia</strong>
+                    {% else %}
+                        <strong style="font-size: 1.1rem; color: var(--text-light);">— Sem dados</strong>
+                    {% endif %}
                 </div>
             </div>
 
@@ -123,16 +165,75 @@
                 <h4 style="margin-bottom: 16px; text-align: center; color: var(--azul-escuro); font-size: 1rem; font-weight: 700;">
                     Tempo no Alvo (%)
                 </h4>
+                {% if paciente.total_medicoes > 0 %}
                 <div style="display: flex; height: 30px; border-radius: var(--radius-pill); overflow: hidden; font-weight: 700; font-size: 0.9rem; color: white; text-align: center; line-height: 30px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                    <div style="background: var(--warning); width: 46%;" title="Hiperglicemia">46% Alta</div>
-                    <div style="background: var(--success); width: 42%;" title="No Alvo">42% Alvo</div>
-                    <div style="background: var(--danger); width: 12%;" title="Hipoglicemia">12% Baixa</div>
+                    {% if paciente.pct_hiper > 0 %}
+                    <div style="background: var(--warning); width: {{ paciente.pct_hiper }}%;" title="Hiperglicemia">{{ paciente.pct_hiper }}% Alta</div>
+                    {% endif %}
+                    {% if paciente.pct_alvo > 0 %}
+                    <div style="background: var(--success); width: {{ paciente.pct_alvo }}%;" title="No Alvo">{{ paciente.pct_alvo }}% Alvo</div>
+                    {% endif %}
+                    {% if paciente.pct_hipo > 0 %}
+                    <div style="background: var(--danger); width: {{ paciente.pct_hipo }}%;" title="Hipoglicemia">{{ paciente.pct_hipo }}% Baixa</div>
+                    {% endif %}
                 </div>
+                {% else %}
+                <div class="empty-state" style="padding: 15px;">
+                    <p style="margin: 0; font-size: 0.9rem;">Nenhuma medição neste período para calcular o tempo no alvo.</p>
+                </div>
+                {% endif %}
             </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="secao">
+            <div class="secao-header">
+                <h3 style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
+                    <span class="section-icon">📋</span> Histórico do Período
+                </h3>
+            </div>
+
+            {% if medicoes %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Valor</th>
+                        <th>Tipo</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicao in medicoes %}
+                    <tr>
+                        <td data-label="Data">{{ medicao.data|date:"d/m/Y" }}</td>
+                        <td data-label="Hora">{{ medicao.hora|time:"H:i" }}</td>
+                        <td data-label="Valor">
+                            <span
+                                class="valor-badge {% if medicao.valor >= 180 %}valor-alto{% elif medicao.valor < 70 %}valor-baixo{% else %}valor-normal{% endif %}">
+                                {{ medicao.valor }} mg/dL
+                            </span>
+                        </td>
+                        <td data-label="Tipo"><span class="tipo-badge">{{ medicao.get_tipo_display }}</span></td>
+                        <td data-label="Notas">{{ medicao.notes|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <p>Nenhuma medição encontrada para este mês.</p>
+            </div>
+            {% endif %}
         </div>
 
         <script>
             const ctx = document.getElementById('graficoGlicemiaMedico').getContext('2d');
+            
+            const labelsData = {{ labels_json|safe }};
+            const valoresData = {{ valores_json|safe }};
             
             // Gradient for chart
             const gradientBg = ctx.createLinearGradient(0, 0, 0, 400);
@@ -142,10 +243,10 @@
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['09/06', '09/06', '09/06', '10/06', '10/06', '10/06'],
+                    labels: labelsData,
                     datasets: [{
                         label: 'Glicose (mg/dL)',
-                        data: [100, 120, 60, 140, 300, 150],
+                        data: valoresData,
                         borderColor: '#2980b9',
                         backgroundColor: gradientBg,
                         fill: true,

@@ -112,10 +112,13 @@ STATICFILES_FINDERS = [
 ]
 
 # Configuração estável de produção (sem o Manifest rígido que causa Erro 500)
+# Detecta se o Cloudinary está configurado por qualquer uma das variáveis
+_USE_CLOUDINARY = bool(os.environ.get('CLOUDINARY_URL') or os.environ.get('CLOUDINARY_CLOUD_NAME'))
+
 STORAGES = {
     "default": {
         # Em produção (Render), usa Cloudinary para armazenar uploads permanentemente
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage" if os.environ.get('CLOUDINARY_URL') else "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage" if _USE_CLOUDINARY else "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
