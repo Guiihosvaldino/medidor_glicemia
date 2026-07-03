@@ -128,6 +128,8 @@ def nova_medicao_view(request):
             tipo=tipo,
             notes=notas
         )
+        messages.success(request, "Nova medição registrada com sucesso!")
+        
         
         # Verifica limites de glicemia e exibe mensagens adequadas
         try:
@@ -719,4 +721,4 @@ def perfil_medico_view(request):
         'user': user,
         'perfil': perfil,
     }
-    return render(request, 'glicemia/perfil_medico.html', contexto)
+    return render(request, 'glicemia/perfil_medico.html', contexto)
