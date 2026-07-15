@@ -86,16 +86,19 @@ if os.environ.get('DATABASE_URL'):
         }
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'medidor_glicemia',
-            'USER': 'root',
-            'PASSWORD': 'jesuscristo',
-            'HOST': 'localhost',
-            'PORT': '3306',
+   DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'pterodactyl',
+        'PASSWORD': 'Pl3453Ch4n63M3!',
+        'HOST': 'host.borkcloud.com.br',
+        'PORT': '25577',
+        'OPTIONS': {
+            'sslmode': 'disable',
         }
     }
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
