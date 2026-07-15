@@ -70,8 +70,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Configuração Inteligente de Banco de Dados (Local vs Produção)
-if os.environ.get('DATABASE_URL'):
+
     # Banco de dados de Produção (Configuração direta e testada)
 DATABASES = {
     'default': {
