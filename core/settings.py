@@ -73,7 +73,17 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Configuração Inteligente de Banco de Dados (Local vs Produção)
 if os.environ.get('DATABASE_URL'):
     DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=False)  # <-- Mude para False!
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'mercadinho',
+            'USER': 'pterodactyl',
+            'PASSWORD': '<lN3%vY022*W',  # Sem codificação, o Django lê a string pura aqui!
+            'HOST': 'host.borkcloud.com.br',
+            'PORT': '25577',
+            'OPTIONS': {
+                'sslmode': 'disable',
+            }
+        }
     }
 else:
     DATABASES = {
