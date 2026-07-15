@@ -86,20 +86,7 @@ DATABASES = {
         }
     }
 }
-else:
-   DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'pterodactyl',
-        'PASSWORD': 'Pl3453Ch4n63M3!',
-        'HOST': 'host.borkcloud.com.br',
-        'PORT': '25577',
-        'OPTIONS': {
-            'sslmode': 'disable',
-        }
-    }
-}
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
