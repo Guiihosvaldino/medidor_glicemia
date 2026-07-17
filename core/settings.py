@@ -87,22 +87,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Configuração Inteligente de Banco de Dados (Local vs Produção)
-if os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'medidor_glicemia',
-            'USER': 'root',
-            'PASSWORD': 'jesuscristo',
-            'HOST': 'localhost',
-            'PORT': '3306',
+
+    # Banco de dados de Produção (Configuração direta e testada)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'pterodactyl',
+        'PASSWORD': 'Pl3453Ch4n63M3!',
+        'HOST': 'host.borkcloud.com.br',
+        'PORT': '25577',
+        'OPTIONS': {
+            'sslmode': 'disable',
         }
     }
+}
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
