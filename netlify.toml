@@ -1,15 +1,6 @@
 [build]
-  # Força o comando de instalação do Python a não fazer nada (esvazia o pip install)
-  functions = ""
-  
-  # Roda apenas o build do React
   command = "cd frontend && npm install && npm run build"
   publish = "frontend/dist"
-
-[build.environment]
-  # Diz para o Netlify ignorar qualquer tentativa de build usando Python
-  PYTHON_VERSION = "3.14.3"
-  PIP_COMMAND = "echo 'Ignorando Python'"
 
 [[redirects]]
   from = "/*"
