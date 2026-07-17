@@ -6,12 +6,15 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count
 from django.contrib import messages
 from django.http import HttpResponse
-
+from django.views.decorators.csrf import csrf_exempt
 # Imports do ReportLab para a geração do PDF
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
+from django.http import JsonResponse
+import json
+from rest_framework.authtoken.models import Token
 
 from .models import PerfilUsuario, PerfilMedico, Medicao, Medicamento, TaxaCorrecao
 
@@ -39,37 +42,82 @@ def cadastro_view(request):
     return render(request, 'glicemia/cadastro.html')
 
 # --- VIEW: LOGIN DO PACIENTE (Nome exato procurado pelas suas URLs) ---
+
+@csrf_exempt  # 🌟 1. ESSA LINHA É OBRIGATÓRIA AQUI PARA MATAR O ERRO 403!
 def login_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
-        senha = request.POST.get('senha')
-        
-        from django.contrib.auth import authenticate, login
-        from django.contrib import messages
-        from django.shortcuts import redirect
+        # 🌟 2. Tratamento para ler o JSON que o React (Axios) envia
+        if request.content_type == 'application/json':
+            try:
+                dados = json.loads(request.body)
+                print(f"Tentativa de login para o usuário: {dados.get('username')}")  # 🌟 ISSO VAI MOSTRAR NO SEU TERMINAL O QUE CHEGOU!
+                
+                # Tenta pegar 'email', se não achar, tenta pegar 'username'
+                email = dados.get('email') or dados.get('username')
+                senha = dados.get('senha') or dados.get('password')
+                
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Dados inválidos'}, status=400)
+        else:
+            # Mantém compatibilidade com formulário comum
+            email = request.POST.get('email')
+            senha = request.POST.get('senha')
         
         user = authenticate(request, username=email, password=senha)
         
         if user is not None:
-            # 🛑 VALIDAÇÃO DE SEGURANÇA: Bloqueia médicos/nutricionistas aqui
             is_medico = PerfilMedico.objects.filter(user=user).exists()
             
             if is_medico:
-                messages.error(request, 'Esta área é exclusiva para pacientes. Profissionais devem acessar o Portal do Médico.')
+                if request.content_type == 'application/json':
+                    return JsonResponse({'error': 'Área exclusiva para pacientes.'}, status=403)
+                messages.error(request, 'Esta área é exclusiva para pacientes.')
                 return redirect('login') 
             
-            # Se for paciente comum, loga normalmente
-            login(request, user)
-            return redirect('dashboard') # Ajuste para a sua rota real do paciente se for diferente
+            auth_login(request, user)
+            
+            # 🌟 3. Para o React: cria/obtém um Token de autenticação e retorna no JSON
+            if request.content_type == 'application/json':
+                token, _ = Token.objects.get_or_create(user=user)
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Login realizado com sucesso!',
+                    'token': token.key,
+                    'nome': user.first_name or user.username,
+                })
+                
+            return redirect('dashboard')
         else:
+            if request.content_type == 'application/json':
+                return JsonResponse({'error': 'E-mail ou senha incorretos.'}, status=400)
             messages.error(request, 'E-mail ou senha incorretos.')
             return redirect('login')
             
     return render(request, 'glicemia/login.html')
 
 # --- VIEW: DASHBOARD & FILTROS (PROTEGIDA) ---
-@login_required(login_url='login')
+# --- @login_required(login_url='login') ---
+@csrf_exempt
 def dashboard_view(request):
+    # --- AUTENTICAÇÃO VIA TOKEN PARA O REACT ---
+    # Se a requisição não veio com sessão autenticada, tenta autenticar via Token
+    if not request.user.is_authenticated:
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        if auth_header.startswith('Token '):
+            token_key = auth_header.split(' ')[1]
+            try:
+                token = Token.objects.get(key=token_key)
+                request.user = token.user
+            except Token.DoesNotExist:
+                pass
+    
+    # Garante que o usuário está autenticado antes de filtrar no banco
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'sucesso': False, 
+            'error': 'Sessão encerrada ou usuário não autenticado no servidor.'
+        }, status=401)
+
     # Determina quais dados de usuário devem ser mostrados
     target_user = request.user
     
@@ -82,11 +130,29 @@ def dashboard_view(request):
             target_user = request.user
             
     hoje = datetime.now()
-    mes_selecionado = int(request.POST.get('mes', request.GET.get('mes', hoje.month)))
-    ano_selecionado = int(request.POST.get('ano', request.GET.get('ano', hoje.year)))
+    # Pegamos o valor que veio do React ou do HTML (pode ser texto ou número)
+    mes_cru = request.POST.get('mes', request.GET.get('mes', hoje.month))
     
+    # Criamos um dicionário para converter o nome do mês para o número correto
+    meses_map = {
+        'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+        'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
+        'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
+    }
+    
+    # Se o React mandou o nome por extenso (ex: 'Julho'), convertemos usando o mapa.
+    if isinstance(mes_cru, str) and mes_cru in meses_map:
+        mes_selecionado = meses_map[mes_cru]
+    else:
+        try:
+            mes_selecionado = int(mes_cru)
+        except ValueError:
+            mes_selecionado = hoje.month
+    ano_selecionado = int(request.POST.get('ano', request.GET.get('ano', hoje.year)))
+
+    # Filtra as medições do banco de dados
     medicoes = Medicao.objects.filter(
-        usuario=target_user,
+        usuario=request.user,
         data__month=mes_selecionado,
         data__year=ano_selecionado
     ).order_by('-data', '-hora')
@@ -96,6 +162,35 @@ def dashboard_view(request):
     media_glicose = round(metricas['media'], 2) if metricas['media'] else 0
     glicada_estimada = round((media_glicose + 46.7) / 28.7, 2) if media_glicose > 0 else 0
     
+    is_api_request = (
+        'api' in request.path or 
+        request.headers.get('Accept') == 'application/json' or
+        'application/json' in request.headers.get('Accept', '') or
+        'HTTP_AUTHORIZATION' in request.META
+    )
+    
+    if is_api_request:
+        medicoes_lista = []
+        for m in medicoes:
+            medicoes_lista.append({
+                'id': m.id,
+                'valor': m.valor,
+                'data': m.data.strftime('%Y-%m-%d'),
+                'hora': m.hora.strftime('%H:%M'),
+                'tipo': m.get_tipo_display() if hasattr(m, 'get_tipo_display') else m.tipo,
+                'notas': m.notes or '',
+            })
+        return JsonResponse({
+            'medicoes': medicoes_lista,
+            'resumo': {
+                'total': total_medicoes,
+                'media': media_glicose,
+                'a1c': glicada_estimada,
+            },
+            'nome': request.user.first_name or request.user.username,
+        })
+    
+    # Para requisições tradicionais do navegador (templates HTML)
     contexto = {
         'medicoes': medicoes,
         'total_medicoes': total_medicoes,
@@ -110,14 +205,40 @@ def dashboard_view(request):
     return render(request, 'glicemia/dashboard.html', contexto)
 
 # --- VIEW: NOVA MEDIÇÃO ---
-@login_required(login_url='login')
+@csrf_exempt
 def nova_medicao_view(request):
+    # Autenticação via Token para o React
+    if not request.user.is_authenticated:
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        if auth_header.startswith('Token '):
+            token_key = auth_header.split(' ')[1]
+            try:
+                token = Token.objects.get(key=token_key)
+                request.user = token.user
+            except Token.DoesNotExist:
+                pass
+
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Não autenticado.'}, status=401)
+
     if request.method == 'POST':
-        valor = request.POST.get('valor')
-        data = request.POST.get('data')
-        hora = request.POST.get('hora')
-        tipo = request.POST.get('tipo_medicao')
-        notas = request.POST.get('notas', '')
+        # Suporte a JSON (React) e form-data (HTML)
+        if request.content_type == 'application/json':
+            try:
+                dados = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Dados inválidos.'}, status=400)
+            valor = dados.get('valor')
+            data = dados.get('data')
+            hora = dados.get('hora')
+            tipo = dados.get('momento') or dados.get('tipo_medicao') or 'Jejum'
+            notas = dados.get('observacoes') or dados.get('notas', '')
+        else:
+            valor = request.POST.get('valor')
+            data = request.POST.get('data')
+            hora = request.POST.get('hora')
+            tipo = request.POST.get('tipo_medicao')
+            notas = request.POST.get('notas', '')
 
         # Cria a medição usando os nomes corretos dos campos do modelo
         Medicao.objects.create(
@@ -128,16 +249,14 @@ def nova_medicao_view(request):
             tipo=tipo,
             notes=notas
         )
-        messages.success(request, "Nova medição registrada com sucesso!")
         
-        
-        # Verifica limites de glicemia e exibe mensagens adequadas
+        # Verifica limites de glicemia
+        alerta = None
         try:
             valor_num = float(valor)
             if valor_num < 70:
-                messages.warning(request, 'Atenção! Sua glicemia está baixa (hipoglicemia). Recomendado subir a glicemia.')
+                alerta = 'Atenção! Sua glicemia está baixa (hipoglicemia). Recomendado subir a glicemia.'
             elif valor_num > 180:
-                # Busca taxa de correção configurada para o usuário
                 taxas = TaxaCorrecao.objects.filter(usuario=request.user)
                 dose_recommended = None
                 for taxa in taxas:
@@ -151,12 +270,22 @@ def nova_medicao_view(request):
                             break
                 
                 if dose_recommended is not None:
-                    messages.warning(request, f'Atenção! Sua glicemia está alta (hiperglicemia). Dose de correção recomendada: {dose_recommended} UI.')
+                    alerta = f'Atenção! Sua glicemia está alta (hiperglicemia). Dose de correção recomendada: {dose_recommended} UI.'
                 else:
-                    messages.warning(request, 'Atenção! Sua glicemia está alta (hiperglicemia). Recomendado tomar insulina ou procurar o médico.')
-        except ValueError:
-            # Valor não numérico, ignore verificação de limites
+                    alerta = 'Atenção! Sua glicemia está alta (hiperglicemia). Recomendado tomar insulina ou procurar o médico.'
+        except (ValueError, TypeError):
             pass
+        
+        # Se veio do React, retorna JSON
+        if request.content_type == 'application/json':
+            resposta = {'success': True, 'message': 'Medição registrada com sucesso!'}
+            if alerta:
+                resposta['alerta'] = alerta
+            return JsonResponse(resposta)
+        
+        messages.success(request, "Nova medição registrada com sucesso!")
+        if alerta:
+            messages.warning(request, alerta)
             
     return redirect('dashboard')
 
@@ -210,10 +339,38 @@ def fechar_consulta_view(request):
 # =====================================================================
 
 # --- VIEW: EXPORTAR PDF ---
-@login_required(login_url='login')
+@csrf_exempt
 def exportar_pdf_view(request):
+    # Autenticação via Token para o React
+    if not request.user.is_authenticated:
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        if auth_header.startswith('Token '):
+            token_key = auth_header.split(' ')[1]
+            try:
+                token = Token.objects.get(key=token_key)
+                request.user = token.user
+            except Token.DoesNotExist:
+                pass
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Não autenticado.'}, status=401)
+
     hoje = datetime.now()
-    mes = int(request.GET.get('mes', hoje.month))
+    
+    # Converte nome do mês por extenso para número (suporte ao React)
+    mes_cru = request.GET.get('mes', str(hoje.month))
+    meses_map = {
+        'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+        'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
+        'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
+    }
+    if mes_cru in meses_map:
+        mes = meses_map[mes_cru]
+    else:
+        try:
+            mes = int(mes_cru)
+        except ValueError:
+            mes = hoje.month
     ano = int(request.GET.get('ano', hoje.year))
 
     target_user = request.user

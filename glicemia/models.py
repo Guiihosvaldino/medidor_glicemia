@@ -45,6 +45,28 @@ class PerfilMedico(models.Model):
         return f"{self.user.username} (CRM: {self.crm}-{self.uf})"
 
 
+class AutorizacaoAcesso(models.Model):
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('aprovado', 'Aprovado'),
+        ('negado', 'Negado'),
+    ]
+
+    medico = models.ForeignKey(User, on_delete=models.CASCADE, related_name='autorizacoes_medico')
+    paciente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='autorizacoes_paciente')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['medico', 'paciente'], name='unique_autorizacao_medico_paciente')
+        ]
+
+    def __str__(self):
+        return f'{self.medico.username} -> {self.paciente.username} ({self.status})'
+
+
 # Tabela de Medições
 class Medicao(models.Model):
     TIPOS_MEDICAO = [

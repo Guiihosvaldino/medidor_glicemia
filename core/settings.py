@@ -21,7 +21,13 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'medidor-glicemia.onrender.com']
 CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com']
 
 # Origens confiáveis para CSRF (garanta que está exatamente assim)
-CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com', 'http://localhost:5173', 'http://127.0.0.1:5173']
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://medidor-glicemia.onrender.com"
+]
 
 # Segurança extra para Cookies em Produção
 CSRF_COOKIE_SECURE = True
@@ -38,9 +44,20 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'cloudinary',
     'glicemia',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Servidor de arquivos estáticos
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -156,3 +173,25 @@ else:
 # Configuração de arquivos de mídia (Uploads como fotos de perfil)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# 🌟 Libere para o React conseguir fazer requisições para o Django
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Porta padrão do Vite/React
+    "http://127.0.0.1:5173",
+]
+
+# Permite o envio de cookies de sessão nas requisições CORS
+CORS_ALLOW_CREDENTIALS = True
+
+# Como estamos em HTTP local (localhost), NÃO use 'None' se você não tiver HTTPS ativo.
+# Para HTTP local puro entre portas diferentes, o correto é manter o padrão ou usar estas regras:
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Garanta que o Django NÃO exija HTTPS para trafegar os cookies no seu computador
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
+# IMPORTANTE: Garanta que o cookie de sessão seja visível para o domínio localhost
+SESSION_COOKIE_DOMAIN = None  # Deixe None para que ele se ajuste ao localhost automaticamente
