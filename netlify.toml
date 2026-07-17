@@ -1,6 +1,5 @@
 [build]
-  # Removemos o environment e simplificamos o comando para instalar e buildar o frontend direto
-  command = "npm install --prefix frontend && npm run build --prefix frontend"
+  command = "cd frontend && npm install && npm run build"
   publish = "frontend/dist"
 
 [[redirects]]

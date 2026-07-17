@@ -1,0 +1,7 @@
+# Ignora o back-end do Django no Netlify para evitar o erro do Python
+core/
+requirements.txt
+manage.py
+db.sqlite3
+.venv/
+venv/
