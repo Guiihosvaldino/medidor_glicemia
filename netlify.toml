@@ -1,9 +1,6 @@
 [build]
-  # Força o Netlify a usar apenas o Node.js e ignorar completamente o Python/Pip
-  environment = { PYTHON_VERSION = "none" }
-  
-  # Comando direto para entrar na pasta do React e gerar o build
-  command = "cd frontend && npm install && npm run build"
+  # Removemos o environment e simplificamos o comando para instalar e buildar o frontend direto
+  command = "npm install --prefix frontend && npm run build --prefix frontend"
   publish = "frontend/dist"
 
 [[redirects]]
