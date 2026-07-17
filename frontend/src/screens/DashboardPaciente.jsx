@@ -32,14 +32,18 @@ function DashboardPaciente({ aoSair }) {
     const carregarDados = async () => {
         try {
             // Passa os filtros e o token de autenticação na requisição para o Django
-            const resposta = await axios.get('http://127.0.0.1:8000/api/dashboard-paciente/', {
+            const resposta = await axios.get('https://medidor-glicemia.onrender.com/api/dashboard-paciente/', {
                 params: {
                     mes: mesFiltro,
-                    ano: anoFiltro
+                    ano: anoFiltro,
+                    format: 'json' // Garantia para o Django retornar JSON
                 },
-                headers: getAuthHeaders(),
+                headers: {
+                    ...getAuthHeaders(),
+                    'Accept': 'application/json' // Garantia para o React processar a lista
+                },
             });
-            setMedicoes(resposta.data.medicoes);
+            setMedicoes(resposta.data.medicoes || []);
             setResumo(resposta.data.resumo);
             if (resposta.data.nome) {
                 setNomeUsuario(resposta.data.nome);
@@ -51,7 +55,7 @@ function DashboardPaciente({ aoSair }) {
 
     const carregarAutorizacoes = async () => {
         try {
-            const resposta = await axios.get('http://127.0.0.1:8000/api/autorizacoes-paciente/', {
+            const resposta = await axios.get('https://medidor-glicemia.onrender.com/api/autorizacoes-paciente/', {
                 headers: getAuthHeaders(),
             });
             setAutorizacoes(resposta.data.autorizacoes || []);
@@ -62,7 +66,7 @@ function DashboardPaciente({ aoSair }) {
 
     const responderAutorizacao = async (id, acao) => {
         try {
-            await axios.post(`http://127.0.0.1:8000/api/autorizacoes-paciente/${id}/responder/`, {
+            await axios.post(`https://medidor-glicemia.onrender.com/api/autorizacoes-paciente/${id}/responder/`, {
                 acao,
             }, {
                 headers: getAuthHeaders(),
@@ -83,7 +87,7 @@ function DashboardPaciente({ aoSair }) {
     const lidarComSalvarMedicao = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://127.0.0.1:8000/api/nova-medicao/', {
+            await axios.post('https://medidor-glicemia.onrender.com/api/nova-medicao/', {
                 valor: valorGlicemia,
                 data: dataMedicao,
                 hora: horaMedicao,
@@ -109,7 +113,7 @@ function DashboardPaciente({ aoSair }) {
     // Função para disparar a geração do PDF (com Token auth)
     const lidarComGerarPDF = async () => {
         try {
-            const resposta = await axios.get('http://127.0.0.1:8000/api/gerar-pdf-paciente/', {
+            const resposta = await axios.get('https://medidor-glicemia.onrender.com/api/gerar-pdf-paciente/', {
                 params: { mes: mesFiltro, ano: anoFiltro },
                 headers: getAuthHeaders(),
                 responseType: 'blob', // Recebe o PDF como blob binário

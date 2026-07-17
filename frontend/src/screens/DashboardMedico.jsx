@@ -28,8 +28,15 @@ function DashboardMedico({ aoSair }) {
         setMensagem({ texto: '', tipo: '' });
 
         try {
-            const resposta = await axios.get(`http://127.0.0.1:8000/api/dashboard-medico/?cpf=${cpfBusca}`, {
-                headers: getAuthHeaders(),
+            const resposta = await axios.get(`https://medidor-glicemia.onrender.com/api/dashboard-medico/`, {
+                params: {
+                    cpf: cpfBusca,
+                    format: 'json'
+                },
+                headers: {
+                    ...getAuthHeaders(),
+                    'Accept': 'application/json'
+                },
             });
 
             if (resposta.data.paciente) {
@@ -66,6 +73,7 @@ function DashboardMedico({ aoSair }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.search]);
 
+    // 🌟 Retorno do HTML corrigido e estruturado para o React renderizar
     return (
         <div className="dashboard-layout">
             <Sidebar 
@@ -74,6 +82,7 @@ function DashboardMedico({ aoSair }) {
                 aoSair={aoSair}
                 tipoUsuario="medico"
             />
+            
             {/* Header */}
             <header className="dashboard-header">
                 <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -119,8 +128,6 @@ function DashboardMedico({ aoSair }) {
                     </div>
                 )}
             </div>
-
-            
 
             {paciente && (
                 <>
@@ -176,7 +183,7 @@ function DashboardMedico({ aoSair }) {
                         {/* Inclusão do nosso componente de gráfico */}
                         <GlicemiaChart dados={medicoes} />
 
-                        {/* Tempo no alvo fixo (pode ser tornado dinâmico futuramente) */}
+                        {/* Tempo no alvo */}
                         <div style={{ borderTop: '1px solid rgba(41, 128, 185, 0.12)', paddingTop: '24px', marginTop: '20px' }}>
                             <h4 style={{ marginBottom: '16px', textAlign: 'center', color: 'var(--azul-escuro)', fontSize: '1rem', fontWeight: 700 }}>
                                 Tempo no Alvo (%)
@@ -188,6 +195,7 @@ function DashboardMedico({ aoSair }) {
                             </div>
                         </div>
 
+                        {/* Tabela de registros integrada abaixo do gráfico */}
                         <RegistroTable
                             medicoes={medicoes}
                             title="📋 Registros do Paciente"
