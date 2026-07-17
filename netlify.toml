@@ -1,7 +1,5 @@
 [build]
-  # Força o Netlify a entrar na pasta do frontend, instalar tudo do zero e rodar o build
-  command = "cd frontend && npm install && npm run build"
-  # Mostra exatamente onde a pasta gerada vai estar a partir da raiz total
+  command = "cd frontend && npm run build"
   publish = "frontend/dist"
 
 [[redirects]]
