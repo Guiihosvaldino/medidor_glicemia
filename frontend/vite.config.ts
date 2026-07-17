@@ -1,33 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      devOptions: {
-        enabled: true
-      },
-      manifest: {
-        name: 'Medidor de Glicemia',
-        short_name: 'GlicemiaApp',
-        description: 'Aplicativo para controle de glicemia',
-        theme_color: '#ffffff',
-        icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      }
-    })
-  ]
+  plugins: [react()],
+  build: {
+    // Garante que o Vite não quebre os tipos de arquivos no Netlify
+    minify: 'terser', 
+    cssCodeSplit: false,
+  }
 })
