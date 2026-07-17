@@ -195,3 +195,14 @@ CSRF_COOKIE_SECURE = False
 
 # IMPORTANTE: Garanta que o cookie de sessão seja visível para o domínio localhost
 SESSION_COOKIE_DOMAIN = None  # Deixe None para que ele se ajuste ao localhost automaticamente
+
+# Permita que o Netlify acesse sua API
+CORS_ALLOWED_ORIGINS = [
+    "https://medidorglicemia.netlify.app",
+]
+
+# Como agora estamos na internet real (HTTPS), ative a segurança máxima dos cookies:
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
