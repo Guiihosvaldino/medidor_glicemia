@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: './', // 🌟 ISSO AQUI força o Vite a usar caminhos relativos e resolve o erro no Netlify!
   build: {
-    // Garante que o Vite não quebre os tipos de arquivos no Netlify
     minify: 'terser', 
     cssCodeSplit: false,
   }
