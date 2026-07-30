@@ -23,7 +23,7 @@ function MedicacoesPaciente({ aoSair }) {
 
     const carregarDados = async () => {
         try {
-            const resposta = await axios.get('http://127.0.0.1:8000/api/medicacoes-paciente/', {
+            const resposta = await axios.get('/api/medicacoes-paciente/', {
                 headers: getAuthHeaders(),
             });
             setMedicamentos(resposta.data.medicamentos || []);
@@ -44,7 +44,7 @@ function MedicacoesPaciente({ aoSair }) {
         setMensagem({ texto: '', tipo: '' });
 
         try {
-            await axios.post('http://127.0.0.1:8000/api/medicacoes-paciente/', {
+            await axios.post('/api/medicacoes-paciente/', {
                 nome,
                 dose_ui: doseUi,
                 observacao,
@@ -71,7 +71,7 @@ function MedicacoesPaciente({ aoSair }) {
         setMensagem({ texto: '', tipo: '' });
 
         try {
-            await axios.post('http://127.0.0.1:8000/api/taxas-paciente/', {
+            await axios.post('/api/taxas-paciente/', {
                 glicemia_min: glicemiaMin,
                 glicemia_max: glicemiaMax,
                 dose_ui: doseCorrecao,
@@ -96,7 +96,7 @@ function MedicacoesPaciente({ aoSair }) {
         if (!window.confirm('Tem certeza que deseja excluir esta medicação?')) return;
 
         try {
-            await axios.delete(`http://127.0.0.1:8000/api/medicacoes-paciente/${id}/`, {
+            await axios.delete(`/api/medicacoes-paciente/${id}/`, {
                 headers: getAuthHeaders(),
             });
             setMensagem({ tipo: 'sucesso', texto: 'Medicação removida com sucesso!' });
@@ -111,7 +111,7 @@ function MedicacoesPaciente({ aoSair }) {
         if (!window.confirm('Tem certeza que deseja excluir esta faixa de correção?')) return;
 
         try {
-            await axios.delete(`http://127.0.0.1:8000/api/taxas-paciente/${id}/`, {
+            await axios.delete(`/api/taxas-paciente/${id}/`, {
                 headers: getAuthHeaders(),
             });
             setMensagem({ tipo: 'sucesso', texto: 'Taxa de correção removida com sucesso!' });

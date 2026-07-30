@@ -24,7 +24,7 @@ function EsqueciSenha() {
             dados.append('email', email);
 
             const csrfToken = getCookie('csrftoken');
-            const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+            const apiBaseUrl = import.meta.env.VITE_API_URL || '';
             await axios.post(`${apiBaseUrl}/recuperar-senha/`, dados, {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

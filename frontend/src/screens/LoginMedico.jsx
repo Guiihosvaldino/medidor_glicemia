@@ -13,7 +13,7 @@ function LoginMedico({ aoLogar }) {
         setErro('');
 
         try {
-            const resposta = await axios.post('http://127.0.0.1:8000/api/login/', {
+            const resposta = await axios.post('/api/login/', {
                 username: usuario,
                 password: senha,
                 tipo_usuario: 'medico'

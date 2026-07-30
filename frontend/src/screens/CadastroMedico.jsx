@@ -27,7 +27,7 @@ function CadastroMedico() {
         }
 
         try {
-            const resposta = await axios.post('http://127.0.0.1:8000/api/cadastro-medico/', formData);
+            const resposta = await axios.post('/api/cadastro-medico/', formData);
             if (resposta.data.sucesso) {
                 setSucesso('Conta criada com sucesso! Redirecionando...');
                 setTimeout(() => navigate('/login-medico'), 2000);

@@ -29,7 +29,7 @@ function PerfilMedico({ aoSair }) {
 
     const carregarPerfil = async () => {
         try {
-            const resposta = await axios.get('http://127.0.0.1:8000/api/perfil-medico/', {
+            const resposta = await axios.get('/api/perfil-medico/', {
                 headers: getAuthHeaders(),
             });
 
@@ -102,7 +102,7 @@ function PerfilMedico({ aoSair }) {
                 formDataToSend.append('foto_perfil', fotoFile);
             }
 
-            const resposta = await axios.post('http://127.0.0.1:8000/api/perfil-medico/', formDataToSend, {
+            const resposta = await axios.post('/api/perfil-medico/', formDataToSend, {
                 headers: {
                     ...getAuthHeaders(),
                     'Content-Type': 'multipart/form-data'

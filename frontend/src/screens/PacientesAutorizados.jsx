@@ -14,7 +14,7 @@ function PacientesAutorizados({ aoSair }) {
 
     const carregarPacientes = async () => {
         try {
-            const resposta = await axios.get('http://127.0.0.1:8000/api/pacientes-autorizados/', {
+            const resposta = await axios.get('/api/pacientes-autorizados/', {
                 headers: getAuthHeaders(),
             });
             setPacientes(resposta.data.pacientes || []);

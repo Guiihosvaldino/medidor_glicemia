@@ -25,7 +25,7 @@ function CadastroPaciente() {
 
         try {
             // Ajustar para a sua API real
-            const resposta = await axios.post('http://127.0.0.1:8000/api/cadastro/', formData);
+            const resposta = await axios.post('/api/cadastro/', formData);
             if (resposta.data.sucesso) {
                 setSucesso('Conta criada com sucesso! Redirecionando...');
                 setTimeout(() => navigate('/'), 2000);

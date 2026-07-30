@@ -19,6 +19,10 @@ import SolicitacoesPaciente from './screens/SolicitacoesPaciente';
 
 import axios from 'axios';
 axios.defaults.withCredentials = true;
+// Se estiver rodando localmente (localhost), usa a API local. Se estiver no Netlify, usa a API do Render.
+axios.defaults.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://127.0.0.1:8000' 
+    : 'https://medidor-glicemia.onrender.com';
 
 function App() {
     // Estado para gerenciar de forma rápida se está logado para os Dashboards

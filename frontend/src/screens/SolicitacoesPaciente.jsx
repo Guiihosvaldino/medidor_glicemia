@@ -18,7 +18,7 @@ function SolicitacoesPaciente({ aoSair }) {
     const carregarAutorizacoes = async () => {
         setCarregando(true);
         try {
-            const resposta = await axios.get('http://127.0.0.1:8000/api/autorizacoes-paciente/', {
+            const resposta = await axios.get('/api/autorizacoes-paciente/', {
                 headers: getAuthHeaders(),
             });
             setAutorizacoes(resposta.data.autorizacoes || []);
@@ -36,7 +36,7 @@ function SolicitacoesPaciente({ aoSair }) {
     const responderAutorizacao = async (id, acao) => {
         setMensagem({ texto: '', tipo: '' });
         try {
-            await axios.post(`http://127.0.0.1:8000/api/autorizacoes-paciente/${id}/responder/`, {
+            await axios.post(`/api/autorizacoes-paciente/${id}/responder/`, {
                 acao,
             }, {
                 headers: getAuthHeaders(),
