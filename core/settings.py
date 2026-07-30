@@ -26,7 +26,8 @@ CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com', 'http://localho
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://medidor-glicemia.onrender.com"
+    "https://medidor-glicemia.onrender.com",
+    "https://medidorglicemia.netlify.app",
 ]
 
 # Segurança extra para Cookies em Produção
@@ -175,34 +176,20 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# 🌟 Libere para o React conseguir fazer requisições para o Django
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Porta padrão do Vite/React
-    "http://127.0.0.1:5173",
-]
-
 # Permite o envio de cookies de sessão nas requisições CORS
 CORS_ALLOW_CREDENTIALS = True
 
-# Como estamos em HTTP local (localhost), NÃO use 'None' se você não tiver HTTPS ativo.
-# Para HTTP local puro entre portas diferentes, o correto é manter o padrão ou usar estas regras:
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
-
-# Garanta que o Django NÃO exija HTTPS para trafegar os cookies no seu computador
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+# Configurações de Cookie com base no ambiente (Local vs Produção)
+if DEBUG:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
+else:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SAMESITE = 'None'
 
 # IMPORTANTE: Garanta que o cookie de sessão seja visível para o domínio localhost
 SESSION_COOKIE_DOMAIN = None  # Deixe None para que ele se ajuste ao localhost automaticamente
-
-# Permita que o Netlify acesse sua API
-CORS_ALLOWED_ORIGINS = [
-    "https://medidorglicemia.netlify.app",
-]
-
-# Como agora estamos na internet real (HTTPS), ative a segurança máxima dos cookies:
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SAMESITE = 'None'
