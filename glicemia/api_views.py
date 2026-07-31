@@ -43,30 +43,37 @@ def api_cadastro_medico(request):
     data = request.data
     nome = data.get('nome')
     email = data.get('email')
-    cpf = data.get('cpf', '').replace('.', '').replace('-', '')
-    telefone = data.get('telefone')
-    tipo_registro = data.get('tipo_registro')
-    registro_num = data.get('registro_num')
-    uf = data.get('uf')
+    tipo_registro = data.get('tipo_registro', 'CRM')
+    registro_num = data.get('registro_num', '')
+    uf = data.get('uf', '').upper().strip()
     senha = data.get('senha')
+
+    if not email or not senha:
+        return Response({'sucesso': False, 'mensagem': 'Email e senha são obrigatórios.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not registro_num:
+        return Response({'sucesso': False, 'mensagem': 'Número de registro é obrigatório.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Monta o CRM combinando tipo (CRM/CRN) + número
+    crm = f"{tipo_registro}-{registro_num}"
 
     if User.objects.filter(username=email).exists():
         return Response({'sucesso': False, 'mensagem': 'Este e-mail já está cadastrado.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    if PerfilMedico.objects.filter(crm=crm, uf=uf).exists():
+        return Response({'sucesso': False, 'mensagem': f'{tipo_registro} já cadastrado para este estado.'}, status=status.HTTP_400_BAD_REQUEST)
+
     user = User.objects.create_user(username=email, email=email, password=senha, first_name=nome)
     PerfilMedico.objects.create(
-        user=user, 
-        cpf=cpf, 
-        telefone=telefone, 
-        tipo_registro=tipo_registro,
-        registro_num=registro_num,
+        user=user,
+        crm=crm,
         uf=uf
     )
-    
+
     token, _ = Token.objects.get_or_create(user=user)
 
     return Response({
-        'sucesso': True, 
+        'sucesso': True,
         'mensagem': 'Cadastro de médico realizado com sucesso!',
         'token': token.key,
         'tipo_usuario': 'medico'
