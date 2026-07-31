@@ -4,6 +4,9 @@ from . import views, api_views
 urlpatterns = [
     # Rota de Login que o React chama em /api/login/
     path('login/', api_views.api_login, name='api_login'),
+    # Rotas de cadastro via API
+    path('cadastro/', api_views.api_cadastro_paciente, name='api_cadastro_paciente'),
+    path('cadastro-medico/', api_views.api_cadastro_medico, name='api_cadastro_medico'),
     # Rota que o React chama para puxar os dados do painel do paciente
     path('dashboard-paciente/', views.dashboard_view, name='api_dashboard_paciente'),
     path('perfil-paciente/', api_views.api_perfil_paciente, name='api_perfil_paciente'),

@@ -17,11 +17,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'g4x9!m$8v2#p1Lz0QeW7uY3kR6tN5bA8')
 # Em produção (no Render), ficará False automaticamente.
 DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'medidor-glicemia.onrender.com', 'romantic-reprieve-production-2803.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com', 'https://romantic-reprieve-production-2803.up.railway.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'medidor-glicemia.onrender.com', 'romantic-reprieve-production-2803.up.railway.app', 'medidorglicemia-production.up.railway.app', '*']
+CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com', 'https://romantic-reprieve-production-2803.up.railway.app', 'https://medidorglicemia-production.up.railway.app']
 
 # Origens confiáveis para CSRF (garanta que está exatamente assim)
-CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com', 'http://localhost:5173', 'http://127.0.0.1:5173', 'https://romantic-reprieve-production-2803.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com', 'http://localhost:5173', 'http://127.0.0.1:5173', 'https://romantic-reprieve-production-2803.up.railway.app', 'https://medidorglicemia-production.up.railway.app']
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -29,6 +29,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://medidor-glicemia.onrender.com",
     "https://medidorglicemia.netlify.app",
     "https://romantic-reprieve-production-2803.up.railway.app",
+    "https://medidorglicemia-production.up.railway.app",
 ]
 
 # Segurança extra para Cookies em Produção
