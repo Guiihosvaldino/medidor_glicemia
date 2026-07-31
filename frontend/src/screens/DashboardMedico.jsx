@@ -83,6 +83,7 @@ function DashboardMedico({ aoSair }) {
                 tipoUsuario="medico"
             />
             
+            <div className="dashboard-content">
             {/* Header */}
             <header className="dashboard-header">
                 <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -204,6 +205,7 @@ function DashboardMedico({ aoSair }) {
                     </div>
                 </>
             )}
+            </div> {/* fim dashboard-content */}
         </div>
     );
 }

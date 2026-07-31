@@ -448,7 +448,14 @@ body {
    DASHBOARD
    ══════════════════════════════════════════════ */
 
+/* No desktop: sidebar fixa + conteúdo ao lado */
 .dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  flex: 1;
   max-width: 1200px;
   margin: 30px auto;
   padding: 28px;
@@ -459,6 +466,8 @@ body {
   border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow);
   animation: cardAppear 0.5s ease;
+  /* Empurra o conteúdo para não ficar sob a sidebar no desktop */
+  margin-left: calc(280px + 30px);
 }
 
 /* ── Header ── */
@@ -1078,8 +1087,10 @@ tbody tr:last-child td {
 /* ══════════════════════════════════════════════
    SIDEBAR & MOBILE NAVIGATION (APP FEEL)
    ══════════════════════════════════════════════ */
+
+/* Botão hambúrguer: oculto no desktop */
 .menu-btn {
-  display: none; /* Escondido no desktop por padrão, a menos que queiramos sempre o hamburger */
+  display: none;
   background: var(--glass-bg-strong);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
@@ -1092,6 +1103,7 @@ tbody tr:last-child td {
   -webkit-backdrop-filter: blur(10px);
 }
 
+/* Overlay: só usado no mobile */
 .sidebar-overlay {
   position: fixed;
   inset: 0;
@@ -1109,10 +1121,11 @@ tbody tr:last-child td {
   pointer-events: auto;
 }
 
+/* DESKTOP: sidebar sempre visível e fixa à esquerda */
 .sidebar {
   position: fixed;
   top: 0;
-  left: -300px; /* Escondido inicialmente */
+  left: 0;         /* sempre visível no desktop */
   width: 280px;
   height: 100vh;
   background: rgba(255, 255, 255, 0.7);
@@ -1127,10 +1140,6 @@ tbody tr:last-child td {
   padding: 20px;
 }
 
-.sidebar.active {
-  left: 0;
-}
-
 .sidebar-header {
   display: flex;
   align-items: center;
@@ -1140,12 +1149,14 @@ tbody tr:last-child td {
   border-bottom: 1px solid var(--glass-border);
 }
 
+/* Botão fechar: oculto no desktop (sidebar sempre aberta) */
 .sidebar-close {
   background: none;
   border: none;
   font-size: 24px;
   color: var(--text-dark);
   cursor: pointer;
+  display: none;
 }
 
 .sidebar-nav {
@@ -1203,6 +1214,31 @@ tbody tr:last-child td {
     padding: 30px 20px;
   }
 
+  /* MOBILE: sidebar volta a ser gaveta deslizante */
+  .sidebar {
+    left: -300px; /* escondida por padrão */
+  }
+
+  .sidebar.active {
+    left: 0; /* aparece ao abrir o menu */
+  }
+
+  /* Botão fechar visível no mobile */
+  .sidebar-close {
+    display: block;
+  }
+
+  /* Conteúdo ocupa tela toda no mobile (sem margem da sidebar) */
+  .dashboard-layout {
+    display: block;
+  }
+
+  .dashboard-content {
+    margin-left: 0;
+    margin: 16px;
+    padding: 20px;
+  }
+
   /* Exibir Botão Menu no Dashboard */
   .menu-btn {
     display: flex;
@@ -1225,7 +1261,7 @@ tbody tr:last-child td {
   }
 
   .table-glass {
-    min-width: auto; /* Ajusta para mobile sem forçar largura fixa */
+    min-width: auto;
     width: 100%;
   }
 

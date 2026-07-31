@@ -131,6 +131,7 @@ function MedicacoesPaciente({ aoSair }) {
                 tipoUsuario="paciente"
             />
 
+            <div className="dashboard-content">
             <header className="dashboard-header">
                 <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <button className="menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
@@ -321,6 +322,7 @@ function MedicacoesPaciente({ aoSair }) {
                     </div>
                 )}
             </div>
+            </div> {/* fim dashboard-content */}
         </div>
     );
 }

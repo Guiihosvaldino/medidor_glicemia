@@ -158,6 +158,7 @@ function DashboardPaciente({ aoSair }) {
                 tipoUsuario="paciente"
             />
 
+            <div className="dashboard-content">
             <header className="dashboard-header">
                 <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <button className="menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
@@ -321,6 +322,7 @@ function DashboardPaciente({ aoSair }) {
                     emptyMessage="Nenhum registro encontrado para este período. Use o formulário acima para registrar uma nova medição."
                 />
             </div>
+            </div> {/* fim dashboard-content */}
         </div>
     );
 }
