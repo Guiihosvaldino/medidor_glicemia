@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg, Q
+from django.db import transaction
 from rest_framework.authtoken.models import Token
 from .models import AutorizacaoAcesso, Medicao, PerfilUsuario, PerfilMedico, Medicamento, TaxaCorrecao
 
@@ -57,20 +58,29 @@ def api_cadastro_medico(request):
     # Monta o CRM combinando tipo (CRM/CRN) + número
     crm = f"{tipo_registro}-{registro_num}"
 
-    if User.objects.filter(username=email).exists():
-        return Response({'sucesso': False, 'mensagem': 'Este e-mail já está cadastrado.'}, status=status.HTTP_400_BAD_REQUEST)
+    # Se existir um User órfão (sem PerfilMedico) com esse email — criado por falha anterior — remove-o
+    usuario_existente = User.objects.filter(username=email).first()
+    if usuario_existente:
+        if PerfilMedico.objects.filter(user=usuario_existente).exists():
+            return Response({'sucesso': False, 'mensagem': 'Este e-mail já está cadastrado.'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Usuário órfão de tentativa anterior com falha — limpa para permitir novo cadastro
+            usuario_existente.delete()
 
     if PerfilMedico.objects.filter(crm=crm, uf=uf).exists():
         return Response({'sucesso': False, 'mensagem': f'{tipo_registro} já cadastrado para este estado.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = User.objects.create_user(username=email, email=email, password=senha, first_name=nome)
-    PerfilMedico.objects.create(
-        user=user,
-        crm=crm,
-        uf=uf
-    )
-
-    token, _ = Token.objects.get_or_create(user=user)
+    try:
+        with transaction.atomic():
+            user = User.objects.create_user(username=email, email=email, password=senha, first_name=nome)
+            PerfilMedico.objects.create(
+                user=user,
+                crm=crm,
+                uf=uf
+            )
+            token, _ = Token.objects.get_or_create(user=user)
+    except Exception as e:
+        return Response({'sucesso': False, 'mensagem': 'Erro ao criar cadastro. Verifique os dados e tente novamente.'}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({
         'sucesso': True,
