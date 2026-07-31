@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Medidor de Glicemia",
+    "slug": "medidor-de-glicemia",
+    "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "684c0b97-ec90-48b4-bac8-d5bae9f8d4d5"
+      }
+    },
+    "android": {
+      "package": "com.guiiholiveira.medidordeglicemia"
+    }
+  }
+}
