@@ -17,17 +17,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'g4x9!m$8v2#p1Lz0QeW7uY3kR6tN5bA8')
 # Em produção (no Render), ficará False automaticamente.
 DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'medidor-glicemia.onrender.com']
-CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'medidor-glicemia.onrender.com', 'romantic-reprieve-production-2803.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com', 'https://romantic-reprieve-production-2803.up.railway.app']
 
 # Origens confiáveis para CSRF (garanta que está exatamente assim)
-CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com', 'http://localhost:5173', 'http://127.0.0.1:5173']
+CSRF_TRUSTED_ORIGINS = ['https://medidor-glicemia.onrender.com', 'http://localhost:5173', 'http://127.0.0.1:5173', 'https://romantic-reprieve-production-2803.up.railway.app']
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://medidor-glicemia.onrender.com",
     "https://medidorglicemia.netlify.app",
+    "https://romantic-reprieve-production-2803.up.railway.app",
 ]
 
 # Segurança extra para Cookies em Produção
@@ -89,19 +90,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-    # Banco de dados de Produção (Configuração direta e testada)
+    # Banco de dados de Produção (Configuração automática via dj_database_url para Railway)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'pterodactyl',
-        'PASSWORD': 'Pl3453Ch4n63M3!',
-        'HOST': 'host.borkcloud.com.br',
-        'PORT': '25577',
-        'OPTIONS': {
-            'sslmode': 'disable',
-        }
-    }
+    'default': dj_database_url.config(
+        default='postgres://pterodactyl:Pl3453Ch4n63M3!@host.borkcloud.com.br:25577/postgres',
+        conn_max_age=600,
+        ssl_require=False
+    )
 }
 
 

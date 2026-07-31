@@ -32,7 +32,7 @@ function DashboardPaciente({ aoSair }) {
     const carregarDados = async () => {
         try {
             // Passa os filtros e o token de autenticação na requisição para o Django
-            const resposta = await axios.get('https://medidor-glicemia.onrender.com/api/dashboard-paciente/', {
+            const resposta = await axios.get('/api/dashboard-paciente/', {
                 params: {
                     mes: mesFiltro,
                     ano: anoFiltro,
@@ -55,7 +55,7 @@ function DashboardPaciente({ aoSair }) {
 
     const carregarAutorizacoes = async () => {
         try {
-            const resposta = await axios.get('https://medidor-glicemia.onrender.com/api/autorizacoes-paciente/', {
+            const resposta = await axios.get('/api/autorizacoes-paciente/', {
                 headers: getAuthHeaders(),
             });
             setAutorizacoes(resposta.data.autorizacoes || []);
@@ -66,7 +66,7 @@ function DashboardPaciente({ aoSair }) {
 
     const responderAutorizacao = async (id, acao) => {
         try {
-            await axios.post(`https://medidor-glicemia.onrender.com/api/autorizacoes-paciente/${id}/responder/`, {
+            await axios.post(`/api/autorizacoes-paciente/${id}/responder/`, {
                 acao,
             }, {
                 headers: getAuthHeaders(),
@@ -87,7 +87,7 @@ function DashboardPaciente({ aoSair }) {
     const lidarComSalvarMedicao = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('https://medidor-glicemia.onrender.com/api/nova-medicao/', {
+            await axios.post('/api/nova-medicao/', {
                 valor: valorGlicemia,
                 data: dataMedicao,
                 hora: horaMedicao,
@@ -113,7 +113,7 @@ function DashboardPaciente({ aoSair }) {
     // Função para disparar a geração do PDF (com Token auth)
     const lidarComGerarPDF = async () => {
         try {
-            const resposta = await axios.get('https://medidor-glicemia.onrender.com/api/gerar-pdf-paciente/', {
+            const resposta = await axios.get('/api/gerar-pdf-paciente/', {
                 params: { mes: mesFiltro, ano: anoFiltro },
                 headers: getAuthHeaders(),
                 responseType: 'blob', // Recebe o PDF como blob binário

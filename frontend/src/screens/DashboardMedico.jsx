@@ -28,7 +28,7 @@ function DashboardMedico({ aoSair }) {
         setMensagem({ texto: '', tipo: '' });
 
         try {
-            const resposta = await axios.get(`https://medidor-glicemia.onrender.com/api/dashboard-medico/`, {
+            const resposta = await axios.get(`/api/dashboard-medico/`, {
                 params: {
                     cpf: cpfBusca,
                     format: 'json'
