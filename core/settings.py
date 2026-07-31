@@ -10,7 +10,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'sua-chave-secreta-local-padrao')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'g4x9!m$8v2#p1Lz0QeW7uY3kR6tN5bA8')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Em ambiente local (sem a variável RENDER), o DEBUG fica True para carregar o CSS. 
