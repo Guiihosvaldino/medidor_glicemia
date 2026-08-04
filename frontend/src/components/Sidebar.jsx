@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen, aoSair, tipoUsuario }) {
     const location = useLocation();
-    
+    const [collapsed, setCollapsed] = useState(false);
+
     const fecharMenu = () => {
         setIsMobileMenuOpen(false);
     };
@@ -14,50 +15,72 @@ function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen, aoSair, tipoUsuario })
 
     const dashboardPath = tipoUsuario === 'medico' ? '/dashboard-medico' : '/dashboard';
 
+    const navItems = tipoUsuario === 'paciente' ? [
+        { to: dashboardPath, icon: '📊', label: 'Dashboard' },
+        { to: '/perfil', icon: '👤', label: 'Meu Perfil' },
+        { to: '/medicacoes', icon: '💊', label: 'Medicamentos' },
+        { to: '/solicitacoes', id: 'nav-solicitacoes', icon: '🔐', label: 'Solicitações' },
+    ] : [
+        { to: dashboardPath, icon: '📊', label: 'Dashboard' },
+        { to: '/perfil-medico', icon: '👤', label: 'Meu Perfil' },
+        { to: '/pacientes', icon: '👥', label: 'Pacientes' },
+    ];
+
     return (
         <>
-            <div 
+            {/* Overlay mobile */}
+            <div
                 className={`sidebar-overlay ${isMobileMenuOpen ? 'active' : ''}`}
                 onClick={fecharMenu}
-            ></div>
-            <div className={`sidebar ${isMobileMenuOpen ? 'active' : ''}`}>
+            />
+
+            <div className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''} ${collapsed ? 'collapsed' : ''}`}>
+                {/* Header da sidebar */}
                 <div className="sidebar-header">
-                    <h3>Controle de Glicose</h3>
-                    <button className="sidebar-close" onClick={fecharMenu}>
-                        &times;
-                    </button>
+                    {!collapsed && <h3>Controle de Glicose</h3>}
+                    <div style={{ display: 'flex', gap: '6px', marginLeft: collapsed ? 'auto' : undefined }}>
+                        {/* Botão fechar (mobile) */}
+                        <button className="sidebar-close" onClick={fecharMenu} title="Fechar menu">
+                            ✕
+                        </button>
+                        {/* Botão colapsar (desktop) */}
+                        <button
+                            className="sidebar-toggle-btn"
+                            onClick={() => setCollapsed(!collapsed)}
+                            title={collapsed ? 'Expandir menu' : 'Recolher menu'}
+                        >
+                            {collapsed ? '▶' : '◀'}
+                        </button>
+                    </div>
                 </div>
-                <div className="sidebar-nav">
-                    <Link to={dashboardPath} className={`sidebar-link ${isLinkActive(dashboardPath)}`} onClick={fecharMenu}>
-                        <span style={{ fontSize: '1.2rem' }}>📊</span> Dashboard
-                    </Link>
-                    {tipoUsuario === 'paciente' && (
-                        <>
-                            <Link to="/perfil" className={`sidebar-link ${isLinkActive('/perfil')}`} onClick={fecharMenu}>
-                                <span style={{ fontSize: '1.2rem' }}>👤</span> Meu Perfil
-                            </Link>
-                            <Link to="/medicacoes" className={`sidebar-link ${isLinkActive('/medicacoes')}`} onClick={fecharMenu}>
-                                <span style={{ fontSize: '1.2rem' }}>💊</span> Medicamentos
-                            </Link>
-                            <Link id="nav-solicitacoes" to="/solicitacoes" className={`sidebar-link ${isLinkActive('/solicitacoes')}`} onClick={fecharMenu}>
-                                <span style={{ fontSize: '1.2rem' }}>🔐</span> Solicitações
-                            </Link>
-                        </>
-                    )}
-                    {tipoUsuario === 'medico' && (
-                        <>
-                            <Link to="/perfil-medico" className={`sidebar-link ${isLinkActive('/perfil-medico')}`} onClick={fecharMenu}>
-                                <span style={{ fontSize: '1.2rem' }}>👤</span> Meu Perfil
-                            </Link>
-                            <Link to="/pacientes" className={`sidebar-link ${isLinkActive('/pacientes')}`} onClick={fecharMenu}>
-                                <span style={{ fontSize: '1.2rem' }}>👥</span> Pacientes
-                            </Link>
-                        </>
-                    )}
-                    <a href="#" className="sidebar-link" onClick={(e) => { e.preventDefault(); fecharMenu(); aoSair(); }} style={{ marginTop: 'auto', color: 'var(--danger)' }}>
-                        <span style={{ fontSize: '1.2rem' }}>🚪</span> Sair
+
+                {/* Navegação */}
+                <nav className="sidebar-nav">
+                    {navItems.map((item) => (
+                        <Link
+                            key={item.to}
+                            id={item.id}
+                            to={item.to}
+                            className={`sidebar-link ${isLinkActive(item.to)}`}
+                            onClick={fecharMenu}
+                            title={collapsed ? item.label : undefined}
+                        >
+                            <span className="sidebar-icon">{item.icon}</span>
+                            {!collapsed && <span className="sidebar-label">{item.label}</span>}
+                        </Link>
+                    ))}
+
+                    {/* Sair */}
+                    <a
+                        href="#"
+                        className="sidebar-link sidebar-link-sair"
+                        onClick={(e) => { e.preventDefault(); fecharMenu(); aoSair(); }}
+                        title={collapsed ? 'Sair' : undefined}
+                    >
+                        <span className="sidebar-icon">🚪</span>
+                        {!collapsed && <span className="sidebar-label">Sair</span>}
                     </a>
-                </div>
+                </nav>
             </div>
         </>
     );

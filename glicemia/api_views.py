@@ -579,6 +579,55 @@ def api_medicacoes_paciente(request):
 
 
 @csrf_exempt
+@api_view(['PUT', 'DELETE'])
+def api_medicao_detail(request, id):
+    auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    if auth_header.startswith('Token '):
+        token_key = auth_header.split(' ')[1]
+        try:
+            token = Token.objects.get(key=token_key)
+            request.user = token.user
+        except Token.DoesNotExist:
+            pass
+
+    if not request.user or not request.user.is_authenticated:
+        return Response({'sucesso': False, 'mensagem': 'Não autenticado.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    medicao = get_object_or_404(Medicao, id=id, usuario=request.user)
+
+    if request.method == 'DELETE':
+        medicao.delete()
+        return Response({'sucesso': True, 'mensagem': 'Medição excluída com sucesso.'})
+
+    dados = request.data
+    valor = dados.get('valor')
+    data = dados.get('data')
+    hora = dados.get('hora')
+    tipo = dados.get('momento') or dados.get('tipo') or dados.get('tipo_medicao')
+    observacoes = dados.get('observacoes', dados.get('observacao', dados.get('notas', '')))
+
+    if valor is not None and str(valor).strip() != '':
+        try:
+            medicao.valor = int(valor)
+        except (ValueError, TypeError):
+            return Response({'sucesso': False, 'mensagem': 'Valor inválido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if data is not None and str(data).strip() != '':
+        medicao.data = data
+
+    if hora is not None and str(hora).strip() != '':
+        medicao.hora = hora
+
+    if tipo is not None and str(tipo).strip() != '':
+        medicao.tipo = tipo
+
+    medicao.notes = observacoes
+    medicao.save()
+
+    return Response({'sucesso': True, 'mensagem': 'Medição atualizada com sucesso.'})
+
+
+@csrf_exempt
 @api_view(['DELETE'])
 def api_medicacao_paciente_detail(request, id):
     auth_header = request.META.get('HTTP_AUTHORIZATION', '')

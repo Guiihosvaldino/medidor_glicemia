@@ -13,7 +13,7 @@ const corGlicemia = (valor) => {
     return '#2ecc71';
 };
 
-function RegistroTable({ medicoes, title = '📋 Histórico do Período', emptyMessage = 'Nenhum registro encontrado para este período.' }) {
+function RegistroTable({ medicoes, title = '📋 Histórico do Período', emptyMessage = 'Nenhum registro encontrado para este período.', onEdit, onDelete }) {
     return (
         <div>
             {title && (
@@ -37,6 +37,7 @@ function RegistroTable({ medicoes, title = '📋 Histórico do Período', emptyM
                                 <th style={{ padding: '12px 15px', textAlign: 'center', color: '#4B5563', fontWeight: '700', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Valor</th>
                                 <th style={{ padding: '12px 15px', textAlign: 'left', color: '#4B5563', fontWeight: '700', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipo</th>
                                 <th style={{ padding: '12px 15px', textAlign: 'left', color: '#4B5563', fontWeight: '700', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Observações</th>
+                                <th style={{ padding: '12px 15px', textAlign: 'left', color: '#4B5563', fontWeight: '700', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -63,6 +64,20 @@ function RegistroTable({ medicoes, title = '📋 Histórico do Período', emptyM
                                     <td data-label="Tipo" style={{ padding: '12px 15px', color: '#4B5563' }}>{m.tipo}</td>
                                     <td data-label="Observações" style={{ padding: '12px 15px', color: '#6B7280', fontStyle: m.notas ? 'normal' : 'italic' }}>
                                         {m.notas || '—'}
+                                    </td>
+                                    <td data-label="Ações" style={{ padding: '12px 15px' }}>
+                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                            {onEdit && (
+                                                <button type="button" className="btn-editar" onClick={() => onEdit(m)}>
+                                                    ✏️ Editar
+                                                </button>
+                                            )}
+                                            {onDelete && (
+                                                <button type="button" className="btn-excluir" onClick={() => onDelete(m.id)}>
+                                                    🗑 Excluir
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

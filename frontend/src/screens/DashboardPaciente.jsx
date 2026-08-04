@@ -23,6 +23,15 @@ function DashboardPaciente({ aoSair }) {
     const [momentoMedicao, setMomentoMedicao] = useState('Jejum');
     const [observacoes, setObservacoes] = useState('');
 
+    // Estados para edição de medição
+    const [registroEditando, setRegistroEditando] = useState(null);
+    const [mostrarModalEdicao, setMostrarModalEdicao] = useState(false);
+    const [valorEdicao, setValorEdicao] = useState('');
+    const [dataEdicao, setDataEdicao] = useState('');
+    const [horaEdicao, setHoraEdicao] = useState('');
+    const [momentoEdicao, setMomentoEdicao] = useState('Jejum');
+    const [observacoesEdicao, setObservacoesEdicao] = useState('');
+
     // Cabeçalho de autenticação com o Token salvo no login
     const getAuthHeaders = () => {
         const token = localStorage.getItem('token');
@@ -107,6 +116,58 @@ function DashboardPaciente({ aoSair }) {
             carregarDados();
         } catch (err) {
             console.error("Erro ao salvar nova medição");
+        }
+    };
+
+    const abrirModalEdicao = (medicao) => {
+        setRegistroEditando(medicao);
+        setValorEdicao(medicao.valor ?? '');
+        setDataEdicao(medicao.data ?? '');
+        setHoraEdicao(medicao.hora ?? '');
+        setMomentoEdicao(medicao.tipo ?? 'Jejum');
+        setObservacoesEdicao(medicao.notas ?? '');
+        setMostrarModalEdicao(true);
+    };
+
+    const fecharModalEdicao = () => {
+        setMostrarModalEdicao(false);
+        setRegistroEditando(null);
+    };
+
+    const lidarComEditarMedicao = async (e) => {
+        e.preventDefault();
+        if (!registroEditando) return;
+
+        try {
+            await axios.put(`/api/medicoes/${registroEditando.id}/`, {
+                valor: valorEdicao,
+                data: dataEdicao,
+                hora: horaEdicao,
+                momento: momentoEdicao,
+                observacoes: observacoesEdicao
+            }, {
+                headers: getAuthHeaders(),
+            });
+
+            fecharModalEdicao();
+            carregarDados();
+        } catch (err) {
+            console.error('Erro ao editar medição', err);
+            alert('Não foi possível editar esta medição.');
+        }
+    };
+
+    const lidarComApagarMedicao = async (id) => {
+        if (!window.confirm('Tem certeza que deseja apagar esta medição?')) return;
+
+        try {
+            await axios.delete(`/api/medicoes/${id}/`, {
+                headers: getAuthHeaders(),
+            });
+            carregarDados();
+        } catch (err) {
+            console.error('Erro ao apagar medição', err);
+            alert('Não foi possível apagar esta medição.');
         }
     };
 
@@ -320,9 +381,53 @@ function DashboardPaciente({ aoSair }) {
                     medicoes={medicoes}
                     title=""
                     emptyMessage="Nenhum registro encontrado para este período. Use o formulário acima para registrar uma nova medição."
+                    onEdit={abrirModalEdicao}
+                    onDelete={lidarComApagarMedicao}
                 />
             </div>
             </div> {/* fim dashboard-content */}
+
+            {mostrarModalEdicao && (
+                <div className="modal-overlay active" onClick={fecharModalEdicao}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <button type="button" className="modal-close" onClick={fecharModalEdicao}>✖</button>
+                        <h3 style={{ color: 'var(--azul-escuro)', marginBottom: '20px' }}>✏️ Editar Medição</h3>
+
+                        <form onSubmit={lidarComEditarMedicao} className="inline-form" style={{ display: 'grid', gap: '15px' }}>
+                            <div className="form-group">
+                                <label>VALOR (MG/DL)</label>
+                                <input type="number" value={valorEdicao} onChange={(e) => setValorEdicao(e.target.value)} required />
+                            </div>
+                            <div className="form-group">
+                                <label>DATA</label>
+                                <input type="date" value={dataEdicao} onChange={(e) => setDataEdicao(e.target.value)} required />
+                            </div>
+                            <div className="form-group">
+                                <label>HORA</label>
+                                <input type="time" value={horaEdicao} onChange={(e) => setHoraEdicao(e.target.value)} required />
+                            </div>
+                            <div className="form-group">
+                                <label>MOMENTO</label>
+                                <select value={momentoEdicao} onChange={(e) => setMomentoEdicao(e.target.value)}>
+                                    <option value="Jejum">Jejum</option>
+                                    <option value="Pré-Almoço">Pré-Almoço</option>
+                                    <option value="Pós-Almoço">Pós-Almoço</option>
+                                    <option value="Pré-Jantar">Pré-Jantar</option>
+                                    <option value="Pós-Jantar">Pós-Jantar</option>
+                                    <option value="Antes de Dormir">Antes de Dormir</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>OBSERVAÇÕES</label>
+                                <input type="text" value={observacoesEdicao} onChange={(e) => setObservacoesEdicao(e.target.value)} />
+                            </div>
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+                                💾 Salvar Alterações
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
