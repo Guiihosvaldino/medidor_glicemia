@@ -148,32 +148,48 @@ function PerfilMedico({ aoSair }) {
                 </div>
             </header>
 
-            <div className="secao" style={{ maxWidth: '640px', margin: '0 auto' }}>
-                <div className="secao-header">
-                    <h3>Atualize suas informações</h3>
-                </div>
-
-                {mensagem.texto && (
-                    <div className={`mensagem msg-${mensagem.tipo}`} style={{ marginBottom: '20px' }}>
-                        {mensagem.texto}
-                    </div>
-                )}
-
-                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                    {fotoUrl ? (
-                        <img
-                            src={fotoUrl}
-                            alt="Foto de perfil"
-                            style={{ width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--azul-claro)', boxShadow: 'var(--sombra-card)', marginBottom: '18px' }}
-                        />
-                    ) : (
-                        <div style={{ width: '130px', height: '130px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold', color: '#718096', border: '4px solid var(--azul-claro)', boxShadow: 'var(--sombra-card)', marginBottom: '18px' }}>
-                            {formData.nome ? formData.nome.charAt(0).toUpperCase() : 'M'}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '30px', padding: '20px 0' }}>
+                {/* COLUNA ESQUERDA - FOTO E INFO RESUMIDA */}
+                <div style={{ textAlign: 'center' }}>
+                    <div className="secao" style={{ padding: '30px 20px' }}>
+                        <div style={{ marginBottom: '24px' }}>
+                            {fotoUrl ? (
+                                <img
+                                    src={fotoUrl}
+                                    alt="Foto de perfil"
+                                    style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--azul-claro)', boxShadow: 'var(--sombra-card)', marginBottom: '18px' }}
+                                />
+                            ) : (
+                                <div style={{ width: '150px', height: '150px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5rem', fontWeight: 'bold', color: '#718096', border: '4px solid var(--azul-claro)', boxShadow: 'var(--sombra-card)', marginBottom: '18px' }}>
+                                    {formData.nome ? formData.nome.charAt(0).toUpperCase() : 'M'}
+                                </div>
+                            )}
                         </div>
-                    )}
+                        <h3 style={{ color: 'var(--azul-escuro)', marginBottom: '8px' }}>{formData.nome || 'Seu Nome'}</h3>
+                        <p style={{ color: '#6B7280', fontSize: '0.95rem', marginBottom: '20px' }}>{formData.email || 'seu@email.com'}</p>
+                        <div style={{ textAlign: 'left', fontSize: '0.9rem', color: '#4B5563', lineHeight: '1.8' }}>
+                            <p><strong>CRM:</strong> {formData.crm || '—'}</p>
+                            <p><strong>CPF:</strong> {formData.cpf || '—'}</p>
+                            <p><strong>Telefone:</strong> {formData.telefone || '—'}</p>
+                            <p><strong>UF:</strong> {formData.uf || '—'}</p>
+                        </div>
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="form-inline" style={{ flexDirection: 'column', gap: '20px' }}>
+                {/* COLUNA DIREITA - FORMULÁRIO */}
+                <div>
+                    <div className="secao">
+                        <div className="secao-header">
+                            <h3>Atualize suas informações</h3>
+                        </div>
+
+                        {mensagem.texto && (
+                            <div className={`mensagem msg-${mensagem.tipo}`} style={{ marginBottom: '20px' }}>
+                                {mensagem.texto}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="form-inline" style={{ flexDirection: 'column', gap: '20px' }}>
                     <div className="form-group">
                         <label>Foto de Perfil</label>
                         <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -290,7 +306,9 @@ function PerfilMedico({ aoSair }) {
                     <button type="submit" className="btn btn-primary" disabled={carregando}>
                         {carregando ? 'Salvando...' : 'Salvar Alterações'}
                     </button>
-                </form>
+                        </form>
+                    </div>
+                </div>
             </div>
             </div> {/* fim dashboard-content */}
         </div>
