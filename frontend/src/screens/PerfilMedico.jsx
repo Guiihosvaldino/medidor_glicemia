@@ -148,10 +148,11 @@ function PerfilMedico({ aoSair }) {
                 </div>
             </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '30px', padding: '20px 0' }}>
-                {/* COLUNA ESQUERDA - FOTO E INFO RESUMIDA */}
-                <div style={{ textAlign: 'center' }}>
-                    <div className="secao" style={{ padding: '30px 20px' }}>
+            <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '40px', alignItems: 'start' }}>
+                    {/* COLUNA ESQUERDA - FOTO E INFO RESUMIDA */}
+                    <div style={{ textAlign: 'center' }}>
+                        <div className="secao" style={{ padding: '30px 20px' }}>
                         <div style={{ marginBottom: '24px' }}>
                             {fotoUrl ? (
                                 <img
@@ -306,7 +307,8 @@ function PerfilMedico({ aoSair }) {
                     <button type="submit" className="btn btn-primary" disabled={carregando}>
                         {carregando ? 'Salvando...' : 'Salvar Alterações'}
                     </button>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
