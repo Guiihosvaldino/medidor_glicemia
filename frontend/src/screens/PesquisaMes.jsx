@@ -10,8 +10,16 @@ function PesquisaMes({ aoSair }) {
     const [resumo, setResumo] = useState({ total: 0, media: 0, a1c: 0 });
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [nomeUsuario, setNomeUsuario] = useState(localStorage.getItem('nomeUsuario') || 'Paciente');
-    const [mesFiltro, setMesFiltro] = useState('Julho');
-    const [anoFiltro, setAnoFiltro] = useState('2026');
+
+    const obterMesAtual = () => {
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        return meses[new Date().getMonth()];
+    };
+
+    const obterAnoAtual = () => new Date().getFullYear().toString();
+
+    const [mesFiltro, setMesFiltro] = useState(obterMesAtual());
+    const [anoFiltro, setAnoFiltro] = useState(obterAnoAtual());
 
     const getAuthHeaders = () => {
         const token = localStorage.getItem('token');

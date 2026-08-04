@@ -12,9 +12,16 @@ function DashboardPaciente({ aoSair }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [nomeUsuario, setNomeUsuario] = useState(localStorage.getItem('nomeUsuario') || 'Paciente');
 
+    const obterMesAtual = () => {
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        return meses[new Date().getMonth()];
+    };
+
+    const obterAnoAtual = () => new Date().getFullYear().toString();
+
     // Estados para o Filtro Mensal
-    const [mesFiltro, setMesFiltro] = useState('Julho');
-    const [anoFiltro, setAnoFiltro] = useState('2026');
+    const [mesFiltro, setMesFiltro] = useState(obterMesAtual());
+    const [anoFiltro, setAnoFiltro] = useState(obterAnoAtual());
 
     // Estados para o Formulário de Nova Medição
     const [valorGlicemia, setValorGlicemia] = useState('');
