@@ -233,42 +233,6 @@ function DashboardPaciente({ aoSair }) {
                 </div>
             </header>
 
-            {/* 1️⃣ SEÇÃO: FILTRO MENSAL */}
-            <div className="secao">
-                <div className="secao-header">
-                    <h3>📅 Filtro Mensal</h3>
-                </div>
-                <div className="filter-row" style={{ display: 'flex', gap: '20px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <div className="form-group" style={{ flex: 1, minWidth: '150px' }}>
-                        <label>MÊS</label>
-                        <select value={mesFiltro} onChange={(e) => setMesFiltro(e.target.value)}>
-                            <option value="Janeiro">Janeiro</option>
-                            <option value="Fevereiro">Fevereiro</option>
-                            <option value="Março">Março</option>
-                            <option value="Abril">Abril</option>
-                            <option value="Maio">Maio</option>
-                            <option value="Junho">Junho</option>
-                            <option value="Julho">Julho</option>
-                            <option value="Agosto">Agosto</option>
-                            <option value="Setembro">Setembro</option>
-                            <option value="Outubro">Outubro</option>
-                            <option value="Novembro">Novembro</option>
-                            <option value="Dezembro">Dezembro</option>
-                        </select>
-                    </div>
-                    <div className="form-group" style={{ flex: 1, minWidth: '150px' }}>
-                        <label>ANO</label>
-                        <select value={anoFiltro} onChange={(e) => setAnoFiltro(e.target.value)}>
-                            <option value="2026">2026</option>
-                            <option value="2025">2025</option>
-                        </select>
-                    </div>
-                    <button className="btn btn-primary" onClick={carregarDados} style={{ width: 'auto', height: '45px' }}>
-                        🔍 Filtrar Dados
-                    </button>
-                </div>
-            </div>
-
             {/* CARDS DE RESUMO */}
             <div className="resumo-cards">
                 <div className="card">

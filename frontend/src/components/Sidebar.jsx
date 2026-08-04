@@ -17,6 +17,7 @@ function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen, aoSair, tipoUsuario })
 
     const navItems = tipoUsuario === 'paciente' ? [
         { to: dashboardPath, icon: '📊', label: 'Dashboard' },
+        { to: '/pesquisa-mes', icon: '🔎', label: 'Pesquisar Mês' },
         { to: '/perfil', icon: '👤', label: 'Meu Perfil' },
         { to: '/medicacoes', icon: '💊', label: 'Medicamentos' },
         { to: '/solicitacoes', id: 'nav-solicitacoes', icon: '🔐', label: 'Solicitações' },

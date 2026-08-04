@@ -16,6 +16,7 @@ import PerfilMedico from './screens/PerfilMedico';
 import MedicacoesPaciente from './screens/MedicacoesPaciente';
 import PacientesAutorizados from './screens/PacientesAutorizados';
 import SolicitacoesPaciente from './screens/SolicitacoesPaciente';
+import PesquisaMes from './screens/PesquisaMes';
 
 import axios from 'axios';
 axios.defaults.withCredentials = true;
@@ -26,9 +27,9 @@ axios.defaults.baseURL = window.location.hostname === 'localhost' || window.loca
 
 function App() {
     // Estado para gerenciar de forma rápida se está logado para os Dashboards
-    const [tipoUsuarioLogado, setTipoUsuarioLogado] = useState(null);
+    const [tipoUsuarioLogado, setTipoUsuarioLogado] = useState<string | null>(null);
 
-    const lidarComLoginSucesso = (tipoUsuario) => {
+    const lidarComLoginSucesso = (tipoUsuario: string) => {
         setTipoUsuarioLogado(tipoUsuario);
     };
 
@@ -82,6 +83,15 @@ function App() {
                     element={
                         tipoUsuarioLogado === 'paciente' ?
                             <SolicitacoesPaciente aoSair={lidarComLogout} /> :
+                            <Navigate to="/" />
+                    }
+                />
+
+                <Route
+                    path="/pesquisa-mes"
+                    element={
+                        tipoUsuarioLogado === 'paciente' ?
+                            <PesquisaMes aoSair={lidarComLogout} /> :
                             <Navigate to="/" />
                     }
                 />
