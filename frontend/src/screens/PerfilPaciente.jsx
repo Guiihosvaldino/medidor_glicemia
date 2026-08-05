@@ -135,11 +135,10 @@ function PerfilPaciente({ aoSair }) {
                 </div>
             </header>
 
-            <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '40px', alignItems: 'start' }}>
-                    {/* COLUNA ESQUERDA - FOTO E INFO RESUMIDA */}
-                    <div style={{ textAlign: 'center' }}>
-                        <div className="secao" style={{ padding: '30px 20px' }}>
+            <div style={{ maxWidth: '650px', margin: '0 auto', padding: '20px' }}>
+                <div className="secao" style={{ padding: '40px' }}>
+                    {/* FOTO DE PERFIL */}
+                    <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                         <div style={{ marginBottom: '24px' }}>
                             {fotoUrl ? (
                                 <img
@@ -153,29 +152,16 @@ function PerfilPaciente({ aoSair }) {
                                 </div>
                             )}
                         </div>
-                        <h3 style={{ color: 'var(--azul-escuro)', marginBottom: '8px' }}>{formData.nome || 'Seu Nome'}</h3>
-                        <p style={{ color: '#6B7280', fontSize: '0.95rem', marginBottom: '20px' }}>{formData.email || 'seu@email.com'}</p>
-                        <div style={{ textAlign: 'left', fontSize: '0.9rem', color: '#4B5563', lineHeight: '1.8' }}>
-                            <p><strong>CPF:</strong> {formData.cpf || '—'}</p>
-                            <p><strong>Nascimento:</strong> {formData.data_nascimento ? new Date(formData.data_nascimento).toLocaleDateString('pt-BR') : '—'}</p>
-                        </div>
                     </div>
-                </div>
 
-                {/* COLUNA DIREITA - FORMULÁRIO */}
-                <div>
-                    <div className="secao">
-                        <div className="secao-header">
-                            <h3>Atualize suas informações</h3>
+                    {mensagem.texto && (
+                        <div className={`mensagem msg-${mensagem.tipo}`} style={{ marginBottom: '20px' }}>
+                            {mensagem.texto}
                         </div>
+                    )}
 
-                        {mensagem.texto && (
-                            <div className={`mensagem msg-${mensagem.tipo}`} style={{ marginBottom: '20px' }}>
-                                {mensagem.texto}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="form-inline" style={{ flexDirection: 'column', gap: '20px' }}>
+                    {/* FORMULÁRIO DE EDIÇÃO */}
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div className="form-group">
                         <label>Foto de Perfil</label>
                         <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -249,12 +235,10 @@ function PerfilPaciente({ aoSair }) {
                         />
                     </div>
 
-                    <button type="submit" className="btn btn-primary" disabled={carregando}>
-                        {carregando ? 'Salvando...' : 'Salvar Alterações'}
+                    <button type="submit" className="btn btn-primary" disabled={carregando} style={{ marginTop: '20px' }}>
+                        {carregando ? 'Salvando...' : '💾 Salvar Alterações'}
                     </button>
-                            </form>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
             </div> {/* fim dashboard-content */}
