@@ -1,133 +1,85 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+﻿import React from 'react';
+import { SafeAreaView, StyleSheet, View, Text, ActivityIndicator, Pressable, Linking, Platform } from 'react-native';
+import { WebView } from 'react-native-webview';
+import { StatusBar } from 'expo-status-bar';
 
-// Telas de Autenticação
-import LoginPaciente from './screens/login';
-import LoginMedico from './screens/LoginMedico';
-import CadastroPaciente from './screens/CadastroPaciente';
-import CadastroMedico from './screens/CadastroMedico';
-import EsqueciSenha from './screens/EsqueciSenha';
+const WEB_URL = 'https://medidorglicemia-production.up.railway.app';
 
-// Dashboards
-import DashboardMedico from './screens/DashboardMedico';
-import DashboardPaciente from './screens/DashboardPaciente';
-import PerfilPaciente from './screens/PerfilPaciente';
-import PerfilMedico from './screens/PerfilMedico';
-import MedicacoesPaciente from './screens/MedicacoesPaciente';
-import PacientesAutorizados from './screens/PacientesAutorizados';
-import SolicitacoesPaciente from './screens/SolicitacoesPaciente';
-import PesquisaMes from './screens/PesquisaMes';
+export default function App() {
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
+      <View style={styles.header}>
+        <Text style={styles.title}>Medidor de Glicemia</Text>
+        <Text style={styles.subtitle}>Aplicativo mobile via WebView</Text>
+      </View>
 
-import axios from 'axios';
-axios.defaults.withCredentials = true;
-// Se estiver rodando localmente (localhost), usa a API local. Se estiver no Netlify, usa a API do Render.
-axios.defaults.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://127.0.0.1:8000'
-    : 'https://medidorglicemia-production.up.railway.app'; // <-- COLOQUE O LINK DO SEU BACKEND NO RAILWAY AQUI
+      <WebView
+        source={{ uri: WEB_URL }}
+        startInLoadingState
+        renderLoading={() => <ActivityIndicator size="large" color="#10B981" style={styles.loading} />}
+        style={styles.webview}
+      />
 
-function App() {
-    // Estado para gerenciar de forma rápida se está logado para os Dashboards
-    const [tipoUsuarioLogado, setTipoUsuarioLogado] = useState<string | null>(null);
-
-    const lidarComLoginSucesso = (tipoUsuario: string) => {
-        setTipoUsuarioLogado(tipoUsuario);
-    };
-
-    const lidarComLogout = () => {
-        setTipoUsuarioLogado(null);
-    };
-
-    return (
-        <Router>
-            {/* O fundo animado do seu CSS (sempre presente por trás) */}
-            <div className="bg-animated"></div>
-
-            <Routes>
-                {/* Rotas Públicas */}
-                <Route path="/" element={<LoginPaciente aoLogar={lidarComLoginSucesso} />} />
-                <Route path="/login-medico" element={<LoginMedico aoLogar={lidarComLoginSucesso} />} />
-                <Route path="/cadastro" element={<CadastroPaciente />} />
-                <Route path="/cadastro-medico" element={<CadastroMedico />} />
-                <Route path="/esqueci-senha" element={<EsqueciSenha />} />
-
-                {/* Rotas Protegidas Simples */}
-                <Route
-                    path="/dashboard"
-                    element={
-                        tipoUsuarioLogado === 'paciente' ?
-                            <DashboardPaciente aoSair={lidarComLogout} /> :
-                            <Navigate to="/" />
-                    }
-                />
-
-                <Route
-                    path="/perfil"
-                    element={
-                        tipoUsuarioLogado === 'paciente' ?
-                            <PerfilPaciente aoSair={lidarComLogout} /> :
-                            <Navigate to="/" />
-                    }
-                />
-
-                <Route
-                    path="/medicacoes"
-                    element={
-                        tipoUsuarioLogado === 'paciente' ?
-                            <MedicacoesPaciente aoSair={lidarComLogout} /> :
-                            <Navigate to="/" />
-                    }
-                />
-
-                <Route
-                    path="/solicitacoes"
-                    element={
-                        tipoUsuarioLogado === 'paciente' ?
-                            <SolicitacoesPaciente aoSair={lidarComLogout} /> :
-                            <Navigate to="/" />
-                    }
-                />
-
-                <Route
-                    path="/pesquisa-mes"
-                    element={
-                        tipoUsuarioLogado === 'paciente' ?
-                            <PesquisaMes aoSair={lidarComLogout} /> :
-                            <Navigate to="/" />
-                    }
-                />
-
-                <Route
-                    path="/dashboard-medico"
-                    element={
-                        tipoUsuarioLogado === 'medico' ?
-                            <DashboardMedico aoSair={lidarComLogout} /> :
-                            <Navigate to="/login-medico" />
-                    }
-                />
-
-                <Route
-                    path="/perfil-medico"
-                    element={
-                        tipoUsuarioLogado === 'medico' ?
-                            <PerfilMedico aoSair={lidarComLogout} /> :
-                            <Navigate to="/login-medico" />
-                    }
-                />
-
-                <Route
-                    path="/pacientes"
-                    element={
-                        tipoUsuarioLogado === 'medico' ?
-                            <PacientesAutorizados aoSair={lidarComLogout} /> :
-                            <Navigate to="/login-medico" />
-                    }
-                />
-
-                {/* Rota Fallback (Página não encontrada) */}
-                <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-        </Router>
-    );
+      {Platform.OS !== 'web' && (
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Se o app não carregar, abra no navegador:</Text>
+          <Pressable onPress={() => Linking.openURL(WEB_URL)} style={styles.linkButton}>
+            <Text style={styles.linkText}>Abrir site</Text>
+          </Pressable>
+        </View>
+      )}
+    </SafeAreaView>
+  );
 }
 
-export default App;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  header: {
+    padding: 20,
+    backgroundColor: '#111827',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1f2937',
+  },
+  title: {
+    color: '#ffffff',
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  subtitle: {
+    color: '#c7d2fe',
+    marginTop: 6,
+  },
+  webview: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  footer: {
+    padding: 14,
+    backgroundColor: '#111827',
+    borderTopWidth: 1,
+    borderTopColor: '#1f2937',
+  },
+  footerText: {
+    color: '#94a3b8',
+    marginBottom: 8,
+  },
+  linkButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#10b981',
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  linkText: {
+    color: '#0f172a',
+    fontWeight: '700',
+  },
+});

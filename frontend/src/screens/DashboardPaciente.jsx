@@ -9,6 +9,9 @@ function DashboardPaciente({ aoSair }) {
     const [medicoes, setMedicoes] = useState([]);
     const [resumo, setResumo] = useState({ total: 0, media: 0, a1c: 0 });
     const [autorizacoes, setAutorizacoes] = useState([]);
+    const [medicamentos, setMedicamentos] = useState([]);
+    const [taxasCorrecao, setTaxasCorrecao] = useState([]);
+    const [mensagemNotificacao, setMensagemNotificacao] = useState({ texto: '', tipo: '' });
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [nomeUsuario, setNomeUsuario] = useState(localStorage.getItem('nomeUsuario') || 'Paciente');
 
@@ -80,6 +83,18 @@ function DashboardPaciente({ aoSair }) {
         }
     };
 
+    const carregarMedicacoesETaxas = async () => {
+        try {
+            const resposta = await axios.get('/api/medicacoes-paciente/', {
+                headers: getAuthHeaders(),
+            });
+            setMedicamentos(resposta.data.medicamentos || []);
+            setTaxasCorrecao(resposta.data.taxas || []);
+        } catch (err) {
+            console.error('Erro ao carregar medicamentos e taxas', err);
+        }
+    };
+
     const responderAutorizacao = async (id, acao) => {
         try {
             await axios.post(`/api/autorizacoes-paciente/${id}/responder/`, {
@@ -97,13 +112,14 @@ function DashboardPaciente({ aoSair }) {
     useEffect(() => {
         carregarDados();
         carregarAutorizacoes();
+        carregarMedicacoesETaxas();
     }, [mesFiltro, anoFiltro]);
 
     // Função para salvar uma nova medição no banco via Django
     const lidarComSalvarMedicao = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('/api/nova-medicao/', {
+            const resposta = await axios.post('/api/nova-medicao/', {
                 valor: valorGlicemia,
                 data: dataMedicao,
                 hora: horaMedicao,
@@ -113,16 +129,27 @@ function DashboardPaciente({ aoSair }) {
                 headers: getAuthHeaders(),
             });
 
+            const alerta = resposta.data?.alerta;
+            const textoBasico = 'Nova medição registrada com sucesso!';
+            if (alerta) {
+                setMensagemNotificacao({ texto: `${textoBasico} ${alerta}`, tipo: 'aviso' });
+            } else {
+                setMensagemNotificacao({ texto: textoBasico, tipo: 'sucesso' });
+            }
+
             // Limpa os campos do formulário após salvar com sucesso
             setValorGlicemia('');
             setDataMedicao('');
             setHoraMedicao('');
             setObservacoes('');
 
-            // Recarrega o dashboard atualizado
-            carregarDados();
+            // Recarrega os dados do dashboard e informações de correção/medicamento
+            await Promise.all([carregarDados(), carregarMedicacoesETaxas()]);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
-            console.error("Erro ao salvar nova medição");
+            console.error("Erro ao salvar nova medição", err);
+            setMensagemNotificacao({ texto: 'Erro ao salvar nova medição. Tente novamente.', tipo: 'erro' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -227,6 +254,11 @@ function DashboardPaciente({ aoSair }) {
             />
 
             <div className="dashboard-content">
+            {mensagemNotificacao.texto && (
+                <div className={`mensagem msg-${mensagemNotificacao.tipo}`} style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+                    {mensagemNotificacao.texto}
+                </div>
+            )}
             <header className="dashboard-header">
                 <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <button className="menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
