@@ -277,7 +277,8 @@ def nova_medicao_view(request):
             pass
         
         # Se veio do React, retorna JSON
-        if request.content_type == 'application/json':
+        content_type = request.META.get('CONTENT_TYPE', '') or request.content_type or ''
+        if 'application/json' in content_type:
             resposta = {'success': True, 'message': 'Medição registrada com sucesso!'}
             if alerta:
                 resposta['alerta'] = alerta

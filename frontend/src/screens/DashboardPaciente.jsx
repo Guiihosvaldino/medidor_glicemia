@@ -126,15 +126,19 @@ function DashboardPaciente({ aoSair }) {
                 momento: momentoMedicao,
                 observacoes: observacoes
             }, {
-                headers: getAuthHeaders(),
+                headers: {
+                    ...getAuthHeaders(),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
             });
 
             const alerta = resposta.data?.alerta;
-            const textoBasico = 'Nova medição registrada com sucesso!';
+            const mensagem = resposta.data?.message || 'Nova medição registrada com sucesso!';
             if (alerta) {
-                setMensagemNotificacao({ texto: `${textoBasico} ${alerta}`, tipo: 'aviso' });
+                setMensagemNotificacao({ texto: `${mensagem} ${alerta}`, tipo: 'aviso' });
             } else {
-                setMensagemNotificacao({ texto: textoBasico, tipo: 'sucesso' });
+                setMensagemNotificacao({ texto: mensagem, tipo: 'sucesso' });
             }
 
             // Limpa os campos do formulário após salvar com sucesso
