@@ -133,8 +133,45 @@ function DashboardPaciente({ aoSair }) {
                 },
             });
 
-            const alerta = resposta.data?.alerta;
+            let alerta = resposta.data?.alerta;
             const mensagem = resposta.data?.message || 'Nova medição registrada com sucesso!';
+
+            // Fallback no cliente: se o backend não retornou alerta, calcula localmente usando as taxas de correção carregadas
+            if (!alerta) {
+                try {
+                    const valorNum = parseFloat(valorGlicemia);
+                    if (!isNaN(valorNum)) {
+                        if (valorNum < 70) {
+                            alerta = 'Atenção! Sua glicemia está baixa (hipoglicemia). Recomendado subir a glicemia.';
+                        } else if (valorNum > 180) {
+                            let dose_recommended = null;
+                            for (const taxa of taxasCorrecao) {
+                                const min = taxa.glicemia_min;
+                                const max = taxa.glicemia_max;
+                                if (max) {
+                                    if (min <= valorNum && valorNum <= max) {
+                                        dose_recommended = taxa.dose_ui;
+                                        break;
+                                    }
+                                } else {
+                                    if (valorNum >= min) {
+                                        dose_recommended = taxa.dose_ui;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (dose_recommended != null) {
+                                alerta = `Atenção! Sua glicemia está alta (hiperglicemia). Dose de correção recomendada: ${dose_recommended} UI.`;
+                            } else {
+                                alerta = 'Atenção! Sua glicemia está alta (hiperglicemia). Recomendado tomar insulina ou procurar o médico.';
+                            }
+                        }
+                    }
+                } catch (err) {
+                    // se falhar, não faz nada
+                }
+            }
+
             if (alerta) {
                 setMensagemNotificacao({ texto: `${mensagem} ${alerta}`, tipo: 'aviso' });
             } else {

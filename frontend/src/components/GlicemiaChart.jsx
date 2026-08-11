@@ -11,7 +11,7 @@ import {
     Legend
 } from 'chart.js';
 
-// 🌟 ESSA LINHA É O SEGREDO: Registra os componentes necessários para o gráfico funcionar no React
+// Registra os componentes necessários para o gráfico funcionar no React
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -22,10 +22,29 @@ ChartJS.register(
     Legend
 );
 
+function formatarDataBr(dataStr) {
+    if (!dataStr) return '';
+    const partes = dataStr.split('-'); // espera YYYY-MM-DD
+    if (partes.length === 3) return `${partes[2]}/${partes[1]}`;
+    return dataStr;
+}
+
 function GlicemiaChart({ dados, medicoes }) {
     const pontos = dados || medicoes || [];
-    // Se não vierem dados do banco ainda, evita que o gráfico quebre tentando ler o vazio
-    const rotulos = pontos.length > 0 ? pontos.map(d => d.data) : [];
+
+    // Detecta tela pequena para ajustar ticks
+    const isMobile = (typeof window !== 'undefined') && window.innerWidth <= 480;
+
+    // Monta rótulos combinando data e hora quando disponível
+    const rotulos = pontos.length > 0 ? pontos.map((d) => {
+        const dataFmt = formatarDataBr(d.data);
+        if (d.hora) {
+            // Para mobile, mostrarmos só a hora para evitar sobreposição
+            return isMobile ? d.hora : `${dataFmt} ${d.hora}`;
+        }
+        return dataFmt;
+    }) : [];
+
     const valores = pontos.length > 0 ? pontos.map(d => d.valor) : [];
 
     const data = {
@@ -37,27 +56,65 @@ function GlicemiaChart({ dados, medicoes }) {
                 fill: false,
                 backgroundColor: '#2980b9',
                 borderColor: 'rgba(41, 128, 185, 0.6)',
-                tension: 0.2, // Deixa a linha do gráfico levemente curvada e elegante
+                tension: 0.25,
+                pointRadius: 4,
+                pointHoverRadius: 6,
             },
         ],
     };
 
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: 'top',
             },
+            tooltip: {
+                callbacks: {
+                    title: (items) => {
+                        // Mostra rótulo completo (data + hora) no tooltip
+                        const idx = items[0].dataIndex;
+                        const p = pontos[idx] || {};
+                        const dataFull = p.data ? `${formatarDataBr(p.data)}${p.hora ? ' ' + p.hora : ''}` : rotulos[idx];
+                        return dataFull;
+                    },
+                    label: (item) => `Valor: ${item.formattedValue} mg/dL`,
+                }
+            }
         },
         scales: {
+            x: {
+                ticks: {
+                    autoSkip: true,
+                    maxRotation: 45,
+                    minRotation: 0,
+                    maxTicksLimit: isMobile ? 6 : 12,
+                },
+                grid: {
+                    display: false,
+                }
+            },
             y: {
                 beginAtZero: false,
+                ticks: {
+                    callback: (value) => `${value}`,
+                }
             },
         },
     };
 
+    // Altura adaptativa: se for mobile, dar menos altura
+    const containerStyle = {
+        background: 'var(--glass-bg)',
+        padding: '20px',
+        borderRadius: 'var(--radius-md)',
+        backdropFilter: 'blur(10px)',
+        height: isMobile ? '220px' : '360px'
+    };
+
     return (
-        <div style={{ background: 'var(--glass-bg)', padding: '20px', borderRadius: 'var(--radius-md)', backdropFilter: 'blur(10px)' }}>
+        <div style={containerStyle}>
             <Line data={data} options={options} />
         </div>
     );
