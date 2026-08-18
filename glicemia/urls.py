@@ -59,4 +59,7 @@ urlpatterns = [
     path('cadastro-medico/', views.cadastro_medico_view, name='cadastro_medico'),
     path('dashboard-medico/', views.dashboard_medico_view, name='dashboard_medico'),
     path('logout-medico/',views.logout_medico_view, name='logout_medico'),
+    path('solicitacoes/', views.solicitacoes_paciente_view, name='solicitacoes'),
+    path('pacientes-autorizados/', views.pacientes_autorizados_view, name='pacientes_autorizados'),
+    path('pesquisa-mes/', views.pesquisa_mes_view, name='pesquisa_mes'),
 ]

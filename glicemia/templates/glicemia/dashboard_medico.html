@@ -30,6 +30,9 @@
                 <h1>Olá, Dr(a). <span>{{ request.user.first_name }}</span> 🩺</h1>
             </div>
             <div>
+                <a href="{% url 'pacientes_autorizados' %}" class="btn-header-link">
+                    👥 Pacientes Autorizados
+                </a>
                 <a href="{% url 'perfil_medico' %}" class="btn-header-link">
                     👤 Meu Perfil
                 </a>

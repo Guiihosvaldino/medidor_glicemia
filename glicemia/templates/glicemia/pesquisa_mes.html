@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisar por Mês</title>
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}?v={% now 'U' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="bg-animated"></div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <div class="logo-icon-sm">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm-1 15.5a4 4 0 0 1-3.5-4c0-.3.2-.5.5-.5s.5.2.5.5a3 3 0 0 0 2.5 3c.3 0 .5.2.5.5s-.2.5-.5.5z" />
+                    </svg>
+                </div>
+                <h3>Glicemia App</h3>
+            </a>
+
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard' %}" class="sidebar-link">
+                    📊 Dashboard
+                </a>
+                <a href="{% url 'pesquisa_mes' %}" class="sidebar-link active">
+                    📅 Histórico Mensal
+                </a>
+                <a href="{% url 'solicitacoes' %}" class="sidebar-link">
+                    🔐 Gerenciar Acessos
+                </a>
+                <a href="{% url 'perfil' %}" class="sidebar-link">
+                    👤 Meu Perfil
+                </a>
+                <a href="{% url 'medicacoes' %}" class="sidebar-link">
+                    💊 Minhas Medicações
+                </a>
+                <a href="{% url 'logout' %}" class="sidebar-link" style="margin-top: 10px; color: var(--danger);">
+                    ⏻ Sair do Sistema
+                </a>
+            </nav>
+
+            <div class="sidebar-user">
+                {% if request.user.perfil.foto_perfil %}
+                    <img src="{{ request.user.perfil.foto_perfil.url }}" alt="Foto">
+                {% else %}
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--azul-claro); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--azul-escuro);">
+                        {{ request.user.first_name|first|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <p style="font-weight: 600; font-size: 0.9rem; margin: 0; color: var(--text-dark);">{{ request.user.first_name }}</p>
+                    <p style="font-size: 0.8rem; margin: 0; color: var(--text-light);">Paciente</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+                <h1>Pesquisar por mês <span>{{ request.user.first_name }}</span> 📅</h1>
+            </header>
+
+            <!-- Monthly Filter -->
+            <div class="secao">
+                <h3><span class="section-icon">🔎</span> Buscar registros por período</h3>
+                <form method="POST" action="{% url 'pesquisa_mes' %}" class="form-inline">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Mês</label>
+                        <select name="mes">
+                            <option value="1" {% if mes_selecionado == 1 %}selected{% endif %}>Janeiro</option>
+                            <option value="2" {% if mes_selecionado == 2 %}selected{% endif %}>Fevereiro</option>
+                            <option value="3" {% if mes_selecionado == 3 %}selected{% endif %}>Março</option>
+                            <option value="4" {% if mes_selecionado == 4 %}selected{% endif %}>Abril</option>
+                            <option value="5" {% if mes_selecionado == 5 %}selected{% endif %}>Maio</option>
+                            <option value="6" {% if mes_selecionado == 6 %}selected{% endif %}>Junho</option>
+                            <option value="7" {% if mes_selecionado == 7 %}selected{% endif %}>Julho</option>
+                            <option value="8" {% if mes_selecionado == 8 %}selected{% endif %}>Agosto</option>
+                            <option value="9" {% if mes_selecionado == 9 %}selected{% endif %}>Setembro</option>
+                            <option value="10" {% if mes_selecionado == 10 %}selected{% endif %}>Outubro</option>
+                            <option value="11" {% if mes_selecionado == 11 %}selected{% endif %}>Novembro</option>
+                            <option value="12" {% if mes_selecionado == 12 %}selected{% endif %}>Dezembro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ano</label>
+                        <input type="number" name="ano" value="{{ ano_selecionado }}" min="2020" max="2030">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+                </form>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="resumo-cards">
+                <div class="card">
+                    <h4>TOTAL DE MEDIÇÕES</h4>
+                    <p>{{ total_medicoes }}</p>
+                </div>
+                <div class="card">
+                    <h4>MÉDIA DO MÊS</h4>
+                    <p>{{ media_glicose }} <span class="unit">mg/dL</span></p>
+                </div>
+                <div class="card">
+                    <h4>GLICADA ESTIMADA (A1C)</h4>
+                    <p>{{ glicada_estimada }} <span class="unit">%</span></p>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="secao">
+                <h3><span class="section-icon">📈</span> Gráfico de Glicemia</h3>
+                <div style="background: white; border-radius: 12px; padding: 15px; border: 1px solid rgba(41, 128, 185, 0.15);">
+                    {% if labels_json and labels_json != '[]' %}
+                        <canvas id="glicemiaChart" height="100"></canvas>
+                    {% else %}
+                        <div style="text-align: center; color: var(--text-light); padding: 20px;">
+                            Nenhuma medição registrada para exibir o gráfico.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="secao">
+                <div class="secao-header">
+                    <h3 style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
+                        <span class="section-icon">📋</span> Histórico do Período
+                    </h3>
+                    <a href="{% url 'exportar_pdf' %}?mes={{ mes_selecionado }}&ano={{ ano_selecionado }}" class="btn-pdf">
+                        📄 Gerar PDF
+                    </a>
+                </div>
+
+                {% if medicoes %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Hora</th>
+                            <th>Valor</th>
+                            <th>Tipo</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for medicao in medicoes %}
+                        <tr>
+                            <td data-label="Data">{{ medicao.data|date:"d/m/Y" }}</td>
+                            <td data-label="Hora">{{ medicao.hora|time:"H:i" }}</td>
+                            <td data-label="Valor">
+                                <span class="valor-badge {% if medicao.valor >= 140 %}valor-alto{% else %}valor-normal{% endif %}">
+                                    {{ medicao.valor }} mg/dL
+                                </span>
+                            </td>
+                            <td data-label="Tipo"><span class="tipo-badge">{{ medicao.get_tipo_display }}</span></td>
+                            <td data-label="Notas">{{ medicao.notes|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>Nenhuma medição encontrada para este período.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Gráfico Chart.js
+        document.addEventListener('DOMContentLoaded', function() {
+            var labelsText = '{{ labels_json|safe }}';
+            var valoresText = '{{ valores_json|safe }}';
+            
+            if(labelsText && labelsText !== '[]') {
+                var labels = JSON.parse(labelsText);
+                var data = JSON.parse(valoresText);
+                
+                var ctx = document.getElementById('glicemiaChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Glicemia (mg/dL)',
+                            data: data,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: '#2980b9',
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                suggestedMin: 50,
+                                suggestedMax: 200,
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            x: {
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Mobile Sidebar Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var sidebar = document.querySelector('.sidebar');
+            if(sidebar && !document.getElementById('menuToggle')) {
+                // Criar botão
+                var btn = document.createElement('button');
+                btn.className = 'menu-toggle';
+                btn.id = 'menuToggle';
+                btn.innerHTML = '☰';
+                btn.style.fontSize = '1.2rem';
+                document.body.appendChild(btn);
+                
+                // Criar overlay
+                var overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                overlay.id = 'sidebarOverlay';
+                document.body.appendChild(overlay);
+                
+                // Lógica de clique
+                btn.addEventListener('click', function() {
+                    sidebar.classList.add('open');
+                    overlay.classList.add('active');
+                });
+                
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

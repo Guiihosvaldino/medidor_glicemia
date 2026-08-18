@@ -16,7 +16,7 @@ from django.http import JsonResponse
 import json
 from rest_framework.authtoken.models import Token
 
-from .models import PerfilUsuario, PerfilMedico, Medicao, Medicamento, TaxaCorrecao
+from .models import PerfilUsuario, PerfilMedico, Medicao, Medicamento, TaxaCorrecao, AutorizacaoAcesso
 
 # --- VIEW: CADASTRO ---
 def cadastro_view(request):
@@ -191,6 +191,10 @@ def dashboard_view(request):
         })
     
     # Para requisições tradicionais do navegador (templates HTML)
+    medicoes_grafico = medicoes.order_by('data', 'hora')
+    labels_grafico = [f"{m.data.strftime('%d/%m')}" for m in medicoes_grafico]
+    valores_grafico = [m.valor for m in medicoes_grafico]
+
     contexto = {
         'medicoes': medicoes,
         'total_medicoes': total_medicoes,
@@ -200,7 +204,9 @@ def dashboard_view(request):
         'ano_selecionado': ano_selecionado,
         'acesso_medico': bool(request.session.get('paciente_id')),
         'paciente_nome': target_user.first_name if request.session.get('paciente_id') else '',
-        'paciente_id': target_user.id if request.session.get('paciente_id') else None
+        'paciente_id': target_user.id if request.session.get('paciente_id') else None,
+        'labels_json': json.dumps(labels_grafico),
+        'valores_json': json.dumps(valores_grafico),
     }
     return render(request, 'glicemia/dashboard.html', contexto)
 
@@ -848,6 +854,29 @@ def perfil_view(request):
             perfil.foto_perfil = request.FILES['foto_perfil']
             perfil.save()
             messages.success(request, 'Foto de perfil atualizada com sucesso!')
+            
+        # Atualizar dados básicos
+        nome = request.POST.get('first_name')
+        email = request.POST.get('email')
+        cpf = request.POST.get('cpf')
+        
+        atualizado = False
+        if nome and nome != user.first_name:
+            user.first_name = nome
+            atualizado = True
+        if email and email != user.email:
+            user.email = email
+            atualizado = True
+            
+        if atualizado:
+            user.save()
+            messages.success(request, 'Dados de usuário atualizados.')
+            
+        if cpf and perfil and cpf != perfil.cpf:
+            perfil.cpf = cpf
+            perfil.save()
+            messages.success(request, 'CPF atualizado com sucesso.')
+            
         return redirect('perfil')
 
     contexto = {
@@ -873,6 +902,37 @@ def perfil_medico_view(request):
             perfil.foto_perfil = request.FILES['foto_perfil']
             perfil.save()
             messages.success(request, 'Foto de perfil atualizada com sucesso!')
+            
+        # Atualizar dados básicos
+        nome = request.POST.get('first_name')
+        email = request.POST.get('email')
+        crm = request.POST.get('crm')
+        telefone = request.POST.get('telefone')
+        
+        atualizado = False
+        if nome and nome != user.first_name:
+            user.first_name = nome
+            atualizado = True
+        if email and email != user.email:
+            user.email = email
+            atualizado = True
+            
+        if atualizado:
+            user.save()
+            messages.success(request, 'Dados de usuário atualizados.')
+            
+        perfil_atualizado = False
+        if crm and crm != perfil.crm:
+            perfil.crm = crm
+            perfil_atualizado = True
+        if telefone and telefone != perfil.telefone:
+            perfil.telefone = telefone
+            perfil_atualizado = True
+            
+        if perfil_atualizado:
+            perfil.save()
+            messages.success(request, 'Dados profissionais atualizados com sucesso.')
+            
         return redirect('perfil_medico')
 
     contexto = {
@@ -880,3 +940,107 @@ def perfil_medico_view(request):
         'perfil': perfil,
     }
     return render(request, 'glicemia/perfil_medico.html', contexto)
+
+@login_required(login_url='login')
+def solicitacoes_paciente_view(request):
+    """ View para o paciente gerenciar quem tem acesso aos seus dados """
+    if request.method == 'POST':
+        autorizacao_id = request.POST.get('autorizacao_id')
+        acao = request.POST.get('acao') # 'aprovar', 'negar' ou 'revogar'
+        
+        try:
+            autorizacao = AutorizacaoAcesso.objects.get(id=autorizacao_id, paciente=request.user)
+            if acao == 'aprovar':
+                autorizacao.status = 'aprovado'
+                messages.success(request, 'Acesso permitido com sucesso!')
+            elif acao in ['negar', 'revogar']:
+                autorizacao.status = 'negado'
+                messages.success(request, 'Acesso negado/revogado com sucesso!')
+            autorizacao.save()
+        except AutorizacaoAcesso.DoesNotExist:
+            messages.error(request, 'Solicitação não encontrada.')
+            
+        return redirect('solicitacoes')
+
+    autorizacoes = AutorizacaoAcesso.objects.filter(paciente=request.user).order_by('-atualizado_em')
+    pendentes = autorizacoes.filter(status='pendente')
+    aprovados = autorizacoes.filter(status='aprovado')
+    negados = autorizacoes.filter(status='negado')
+
+    contexto = {
+        'pendentes': pendentes,
+        'aprovados': aprovados,
+        'negados': negados,
+    }
+    return render(request, 'glicemia/solicitacoes.html', contexto)
+
+@login_required(login_url='login')
+def pesquisa_mes_view(request):
+    """ View para o paciente pesquisar histórico de glicemia por mês e ano """
+    from django.db.models import Avg, Count
+    import json
+    
+    hoje = datetime.now()
+    mes_cru = request.POST.get('mes', request.GET.get('mes', hoje.month))
+    
+    meses_map = {
+        'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+        'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
+        'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
+    }
+    
+    if isinstance(mes_cru, str) and mes_cru in meses_map:
+        mes_selecionado = meses_map[mes_cru]
+    else:
+        try:
+            mes_selecionado = int(mes_cru)
+        except ValueError:
+            mes_selecionado = hoje.month
+            
+    ano_selecionado = int(request.POST.get('ano', request.GET.get('ano', hoje.year)))
+
+    medicoes = Medicao.objects.filter(
+        usuario=request.user,
+        data__month=mes_selecionado,
+        data__year=ano_selecionado
+    ).order_by('-data', '-hora')
+    
+    metricas = medicoes.aggregate(total=Count('id'), media=Avg('valor'))
+    total_medicoes = metricas['total'] or 0
+    media_glicose = round(metricas['media'], 2) if metricas['media'] else 0
+    glicada_estimada = round((media_glicose + 46.7) / 28.7, 2) if media_glicose > 0 else 0
+    
+    medicoes_grafico = medicoes.order_by('data', 'hora')
+    labels_grafico = [f"{m.data.strftime('%d/%m')}" for m in medicoes_grafico]
+    valores_grafico = [m.valor for m in medicoes_grafico]
+
+    contexto = {
+        'medicoes': medicoes,
+        'total_medicoes': total_medicoes,
+        'media_glicose': media_glicose,
+        'glicada_estimada': glicada_estimada,
+        'mes_selecionado': mes_selecionado,
+        'ano_selecionado': ano_selecionado,
+        'labels_json': json.dumps(labels_grafico),
+        'valores_json': json.dumps(valores_grafico),
+    }
+    return render(request, 'glicemia/pesquisa_mes.html', contexto)
+
+@login_required(login_url='login_medico')
+def pacientes_autorizados_view(request):
+    """ View para o médico ver a lista de pacientes que o autorizaram """
+    if not hasattr(request.user, 'perfil_medico'):
+        messages.error(request, 'Acesso restrito a médicos.')
+        return redirect('dashboard')
+        
+    autorizacoes = AutorizacaoAcesso.objects.filter(medico=request.user, status='aprovado').select_related('paciente', 'paciente__perfil')
+    
+    pacientes = []
+    for auth in autorizacoes:
+        pacientes.append({
+            'user': auth.paciente,
+            'cpf': auth.paciente.perfil.cpf if hasattr(auth.paciente, 'perfil') else '',
+            'data_nascimento': auth.paciente.perfil.data_nascimento if hasattr(auth.paciente, 'perfil') else None,
+        })
+        
+    return render(request, 'glicemia/pacientes_autorizados.html', {'pacientes': pacientes})

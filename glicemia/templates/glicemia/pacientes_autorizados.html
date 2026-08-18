@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacientes Autorizados</title>
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}?v={% now 'U' %}">
+</head>
+
+<body>
+    <div class="bg-animated"></div>
+
+    <div class="app-container">
+        <!-- Sidebar (Médico) -->
+        <aside class="sidebar">
+            <a href="{% url 'dashboard_medico' %}" class="sidebar-brand">
+                <div class="logo-icon-sm">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm-1 15.5a4 4 0 0 1-3.5-4c0-.3.2-.5.5-.5s.5.2.5.5a3 3 0 0 0 2.5 3c.3 0 .5.2.5.5s-.2.5-.5.5z" />
+                    </svg>
+                </div>
+                <h3>Glicemia App</h3>
+            </a>
+
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard_medico' %}" class="sidebar-link">📊 Dashboard</a>
+                <a href="{% url 'pacientes_autorizados' %}" class="sidebar-link active">👥 Pacientes Autorizados</a>
+                <a href="{% url 'perfil_medico' %}" class="sidebar-link">👤 Meu Perfil</a>
+                <a href="{% url 'logout_medico' %}" class="sidebar-link" style="margin-top:10px;color:var(--danger);">⏻ Sair do Sistema</a>
+            </nav>
+
+            <div class="sidebar-user">
+                {% if request.user.perfil_medico.foto_perfil %}
+                    <img src="{{ request.user.perfil_medico.foto_perfil.url }}" alt="Foto">
+                {% else %}
+                    <div style="width:40px;height:40px;border-radius:50%;background:var(--azul-claro);display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--azul-escuro);">
+                        {{ request.user.first_name|first|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <p style="font-weight:600;font-size:0.9rem;margin:0;color:var(--text-dark);">Dr(a). {{ request.user.first_name }}</p>
+                    <p style="font-size:0.8rem;margin:0;color:var(--text-light);">Médico</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="secao">
+                <div class="secao-header">
+                    <h3>👥 Seus Pacientes</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 4px;">
+                        Pacientes que concederam acesso para você visualizar os prontuários e histórico glicêmico.
+                    </p>
+                </div>
+
+                {% if not pacientes %}
+                    <div style="text-align: center; padding: 40px 20px; background: rgba(255, 255, 255, 0.25); border-radius: 12px; border: 1px dashed rgba(41, 128, 185, 0.2); color: var(--text-light);">
+                        Ainda não há pacientes liberados para visualização.
+                    </div>
+                {% else %}
+                    <div style="display: grid; gap: 12px;">
+                        {% for p in pacientes %}
+                            <form method="GET" action="{% url 'dashboard_medico' %}" style="margin: 0;">
+                                <input type="hidden" name="cpf" value="{{ p.cpf }}">
+                                <button type="submit" style="width: 100%; text-align: left; background: var(--glass-bg-strong); border: 1px solid rgba(41, 128, 185, 0.15); border-radius: 12px; padding: 16px; cursor: pointer; transition: var(--transition);">
+                                    <strong style="display: block; font-size: 1.1rem; color: var(--text-dark);">
+                                        {{ p.user.first_name }} {{ p.user.last_name }}
+                                    </strong>
+                                    <p style="margin: 4px 0 0; color: var(--text-medium); font-size: 0.9rem;">
+                                        CPF: {{ p.cpf|default:'Não informado' }}
+                                    </p>
+                                </button>
+                            </form>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Sidebar Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var sidebar = document.querySelector('.sidebar');
+            if(sidebar && !document.getElementById('menuToggle')) {
+                var btn = document.createElement('button');
+                btn.className = 'menu-toggle';
+                btn.id = 'menuToggle';
+                btn.innerHTML = '☰';
+                btn.style.fontSize = '1.2rem';
+                document.body.appendChild(btn);
+
+                var overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                overlay.id = 'sidebarOverlay';
+                document.body.appendChild(overlay);
+
+                btn.addEventListener('click', function() {
+                    sidebar.classList.add('open');
+                    overlay.classList.add('active');
+                });
+
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

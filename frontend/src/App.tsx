@@ -3,7 +3,7 @@ import { SafeAreaView, StyleSheet, View, Text, ActivityIndicator, Pressable, Lin
 import { WebView } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
 
-const WEB_URL = 'https://romantic-reprieve-production-2803.up.railway.app';
+const WEB_URL = 'https://medidorglicemia-production.up.railway.app';
 
 export default function App() {
   return (

@@ -1,0 +1,226 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitações de Acesso</title>
+    <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}?v={% now 'U' %}">
+</head>
+
+<body>
+    <div class="bg-animated"></div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <div class="logo-icon-sm">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C12 2 6 9 6 14a6 6 0 0 0 12 0c0-5-6-12-6-12zm-1 15.5a4 4 0 0 1-3.5-4c0-.3.2-.5.5-.5s.5.2.5.5a3 3 0 0 0 2.5 3c.3 0 .5.2.5.5s-.2.5-.5.5z" />
+                    </svg>
+                </div>
+                <h3>Glicemia App</h3>
+            </a>
+
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard' %}" class="sidebar-link">📊 Dashboard</a>
+                <a href="{% url 'pesquisa_mes' %}" class="sidebar-link">📅 Histórico Mensal</a>
+                <a href="{% url 'solicitacoes' %}" class="sidebar-link active">🔐 Gerenciar Acessos</a>
+                <a href="{% url 'perfil' %}" class="sidebar-link">👤 Meu Perfil</a>
+                <a href="{% url 'medicacoes' %}" class="sidebar-link">💊 Minhas Medicações</a>
+                <a href="{% url 'logout' %}" class="sidebar-link" style="margin-top:10px;color:var(--danger);">⏻ Sair do Sistema</a>
+            </nav>
+
+            <div class="sidebar-user">
+                {% if request.user.perfil.foto_perfil %}
+                    <img src="{{ request.user.perfil.foto_perfil.url }}" alt="Foto">
+                {% else %}
+                    <div style="width:40px;height:40px;border-radius:50%;background:var(--azul-claro);display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--azul-escuro);">
+                        {{ request.user.first_name|first|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <p style="font-weight:600;font-size:0.9rem;margin:0;color:var(--text-dark);">{{ request.user.first_name }}</p>
+                    <p style="font-size:0.8rem;margin:0;color:var(--text-light);">Paciente</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mensagem {% if message.tags == 'success' %}msg-sucesso{% elif message.tags == 'warning' %}msg-aviso{% else %}msg-erro{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="secao" style="max-width: 800px; margin: 0 auto;">
+                <div class="secao-header">
+                    <h3>🔐 Gerenciar Acesso dos Médicos</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 4px;">
+                        Controle quais médicos cadastrados na plataforma podem visualizar seu histórico de medições de glicose.
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 10px; border-bottom: 1px solid rgba(41, 128, 185, 0.15); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto;">
+                    <button onclick="mostrarAba('pendentes')" id="btn-pendentes" class="tab-btn active">
+                        ⏳ Pendentes ({{ pendentes|length }})
+                    </button>
+                    <button onclick="mostrarAba('aprovados')" id="btn-aprovados" class="tab-btn">
+                        ✅ Autorizados ({{ aprovados|length }})
+                    </button>
+                    <button onclick="mostrarAba('negados')" id="btn-negados" class="tab-btn">
+                        ❌ Recusados ({{ negados|length }})
+                    </button>
+                </div>
+
+                <!-- Pendentes -->
+                <div id="aba-pendentes" class="aba-conteudo active">
+                    {% if not pendentes %}
+                        <div class="empty-state-card">Nenhuma solicitação de acesso pendente.</div>
+                    {% else %}
+                        <div style="display: grid; gap: 15px;">
+                            {% for item in pendentes %}
+                                <div class="auth-card">
+                                    <div class="auth-card-info">
+                                        <h4>Dr(a). {{ item.medico.first_name }} {{ item.medico.last_name }}</h4>
+                                        <p>📧 {{ item.medico.email }}</p>
+                                        <span class="status-badge pendente">Pendente</span>
+                                    </div>
+                                    <div class="auth-card-actions">
+                                        <form method="POST" action="{% url 'solicitacoes' %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="autorizacao_id" value="{{ item.id }}">
+                                            <input type="hidden" name="acao" value="aprovar">
+                                            <button type="submit" class="btn btn-primary">✅ Permitir</button>
+                                        </form>
+                                        <form method="POST" action="{% url 'solicitacoes' %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="autorizacao_id" value="{{ item.id }}">
+                                            <input type="hidden" name="acao" value="negar">
+                                            <button type="submit" class="btn btn-secondary">❌ Negar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Aprovados -->
+                <div id="aba-aprovados" class="aba-conteudo" style="display: none;">
+                    {% if not aprovados %}
+                        <div class="empty-state-card">Nenhum médico autorizado a visualizar seus dados.</div>
+                    {% else %}
+                        <div style="display: grid; gap: 15px;">
+                            {% for item in aprovados %}
+                                <div class="auth-card">
+                                    <div class="auth-card-info">
+                                        <h4>Dr(a). {{ item.medico.first_name }} {{ item.medico.last_name }}</h4>
+                                        <p>📧 {{ item.medico.email }}</p>
+                                        <span class="status-badge aprovado">Autorizado</span>
+                                    </div>
+                                    <div class="auth-card-actions">
+                                        <form method="POST" action="{% url 'solicitacoes' %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="autorizacao_id" value="{{ item.id }}">
+                                            <input type="hidden" name="acao" value="revogar">
+                                            <button type="submit" class="btn btn-secondary danger-outline">🔒 Revogar Acesso</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Negados -->
+                <div id="aba-negados" class="aba-conteudo" style="display: none;">
+                    {% if not negados %}
+                        <div class="empty-state-card">Nenhuma solicitação recusada ou revogada.</div>
+                    {% else %}
+                        <div style="display: grid; gap: 15px;">
+                            {% for item in negados %}
+                                <div class="auth-card">
+                                    <div class="auth-card-info">
+                                        <h4>Dr(a). {{ item.medico.first_name }} {{ item.medico.last_name }}</h4>
+                                        <p>📧 {{ item.medico.email }}</p>
+                                        <span class="status-badge negado">Recusado</span>
+                                    </div>
+                                    <div class="auth-card-actions">
+                                        <form method="POST" action="{% url 'solicitacoes' %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="autorizacao_id" value="{{ item.id }}">
+                                            <input type="hidden" name="acao" value="aprovar">
+                                            <button type="submit" class="btn btn-primary">🔓 Permitir Acesso</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .tab-btn { padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; background-color: rgba(255,255,255,0.4); color: var(--text-medium); transition: var(--transition); }
+        .tab-btn.active { background-color: var(--azul-principal); color: #fff; }
+        .empty-state-card { text-align: center; padding: 40px 20px; background: rgba(255,255,255,0.25); border-radius: 12px; border: 1px dashed rgba(41,128,185,0.2); color: var(--text-light); }
+        .auth-card { border: 1px solid rgba(41,128,185,0.15); border-radius: 16px; padding: 18px; background: var(--glass-bg-strong); box-shadow: var(--glass-shadow); backdrop-filter: blur(10px); display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; }
+        .auth-card-info h4 { margin: 0; color: var(--text-dark); font-size: 1.1rem; }
+        .auth-card-info p { margin: 4px 0; color: var(--text-medium); font-size: 0.9rem; }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-top: 5px; }
+        .status-badge.pendente { background-color: rgba(243,156,18,0.15); color: var(--warning); }
+        .status-badge.aprovado { background-color: rgba(39,174,96,0.15); color: var(--success); }
+        .status-badge.negado { background-color: rgba(231,76,60,0.15); color: var(--danger); }
+        .auth-card-actions { display: flex; gap: 10px; }
+        .danger-outline { background-color: rgba(231,76,60,0.1); color: var(--danger); border: 1px solid rgba(231,76,60,0.2); }
+    </style>
+
+    <script>
+        function mostrarAba(abaId) {
+            document.querySelectorAll('.aba-conteudo').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('aba-' + abaId).style.display = 'block';
+            document.getElementById('btn-' + abaId).classList.add('active');
+        }
+    </script>
+
+    <!-- Mobile Sidebar Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var sidebar = document.querySelector('.sidebar');
+            if(sidebar && !document.getElementById('menuToggle')) {
+                var btn = document.createElement('button');
+                btn.className = 'menu-toggle';
+                btn.id = 'menuToggle';
+                btn.innerHTML = '☰';
+                btn.style.fontSize = '1.2rem';
+                document.body.appendChild(btn);
+
+                var overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                overlay.id = 'sidebarOverlay';
+                document.body.appendChild(overlay);
+
+                btn.addEventListener('click', function() {
+                    sidebar.classList.add('open');
+                    overlay.classList.add('active');
+                });
+
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
