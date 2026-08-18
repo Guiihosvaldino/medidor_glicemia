@@ -3,7 +3,7 @@ import { SafeAreaView, StyleSheet, View, Text, ActivityIndicator, Pressable, Lin
 import { WebView } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
 
-const WEB_URL = 'https://medidorglicemia-production.up.railway.app';
+const WEB_URL = 'https://romantic-reprieve-production-2803.up.railway.app';
 
 export default function App() {
   return (
@@ -11,21 +11,32 @@ export default function App() {
       <StatusBar style="light" />
       <View style={styles.header}>
         <Text style={styles.title}>Medidor de Glicemia</Text>
-        <Text style={styles.subtitle}>Aplicativo mobile via WebView</Text>
+        <Text style={styles.subtitle}>
+          {Platform.OS === 'web' ? 'Acesso via Navegador Web' : 'Aplicativo mobile via WebView'}
+        </Text>
       </View>
 
-      <WebView
-        source={{ uri: WEB_URL }}
-        startInLoadingState
-        renderLoading={() => <ActivityIndicator size="large" color="#10B981" style={styles.loading} />}
-        style={styles.webview}
-      />
+      {/* Renderiza iframe na Web e WebView nativa no Android/iOS */}
+      {Platform.OS === 'web' ? (
+        <iframe 
+          src={WEB_URL} 
+          style={{ width: '100%', height: '100%', border: 'none', flex: 1 }} 
+          title="Medidor de Glicemia Web"
+        />
+      ) : (
+        <WebView
+          source={{ uri: WEB_URL }}
+          startInLoadingState
+          renderLoading={() => <ActivityIndicator size="large" color="#10B981" style={styles.loading} />}
+          style={styles.webview}
+        />
+      )}
 
-      {Platform.OS !== 'web' && (
+      {Platform.OS === 'web' && (
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Se o app não carregar, abra no navegador:</Text>
+          <Text style={styles.footerText}>Se preferir abrir diretamente no navegador:</Text>
           <Pressable onPress={() => Linking.openURL(WEB_URL)} style={styles.linkButton}>
-            <Text style={styles.linkText}>Abrir site</Text>
+            <Text style={styles.linkText}>Abrir em nova aba</Text>
           </Pressable>
         </View>
       )}
@@ -36,50 +47,51 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#0F172A',
   },
   header: {
-    padding: 20,
-    backgroundColor: '#111827',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
+    padding: 16,
+    backgroundColor: '#1E293B',
+    alignItems: 'center',
   },
   title: {
-    color: '#ffffff',
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#F8FAFC',
   },
   subtitle: {
-    color: '#c7d2fe',
-    marginTop: 6,
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 4,
   },
   webview: {
     flex: 1,
-    backgroundColor: '#0f172a',
   },
   loading: {
-    flex: 1,
-    justifyContent: 'center',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -20 }, { translateY: -20 }],
   },
   footer: {
-    padding: 14,
-    backgroundColor: '#111827',
-    borderTopWidth: 1,
-    borderTopColor: '#1f2937',
+    padding: 12,
+    backgroundColor: '#1E293B',
+    alignItems: 'center',
   },
   footerText: {
-    color: '#94a3b8',
-    marginBottom: 8,
+    color: '#94A3B8',
+    fontSize: 12,
   },
   linkButton: {
-    paddingVertical: 10,
+    marginTop: 6,
+    paddingVertical: 6,
     paddingHorizontal: 16,
-    backgroundColor: '#10b981',
-    borderRadius: 8,
-    alignSelf: 'flex-start',
+    backgroundColor: '#0284C7',
+    borderRadius: 6,
   },
   linkText: {
-    color: '#0f172a',
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 12,
   },
 });
