@@ -12,9 +12,12 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
+import requests
 from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 import json
 from rest_framework.authtoken.models import Token
+
 
 from .models import PerfilUsuario, PerfilMedico, Medicao, Medicamento, TaxaCorrecao, AutorizacaoAcesso
 
@@ -1044,3 +1047,45 @@ def pacientes_autorizados_view(request):
         })
         
     return render(request, 'glicemia/pacientes_autorizados.html', {'pacientes': pacientes})
+
+    @require_GET
+    def validar_registro_profissional(request):
+        tipo = request.GET.get('tipo', 'CRM').strip().upper()
+        registro = request.GET.get('registro', '').strip()
+        uf = request.GET.get('uf', '').strip().upper()
+
+        if not registro or not uf:
+            return JsonResponse({'valido': False, 'mensagem': 'Registro e UF são obrigatórios.'}, status=400)
+
+        try:
+            if tipo == 'CRM':
+                # Consulta API CFM / Medicina
+                url = f"https://api.brasilapi.com.br/crm/v1/{registro}?uf={uf}"
+                response = requests.get(url, timeout=5)
+            
+                if response.status_code == 200:
+                    dados = response.json()
+                    return JsonResponse({
+                        'valido': True,
+                        'nome': dados.get('nome', ''),
+                        'situacao': dados.get('situacao', 'Ativo')
+                    })
+
+            elif tipo == 'CRN':
+                # Consulta API CFN / Nutrição (Exemplo com endpoint de verificação ou integrador)
+                # Obs: Vários integradores públicos centralizam consultas de conselhos de saúde
+                url = f"https://api.exemplo.com.br/crn/v1/{registro}?uf={uf}"
+                response = requests.get(url, timeout=5)
+
+            if response.status_code == 200:
+                dados = response.json()
+                return JsonResponse({
+                    'valido': True,
+                    'nome': dados.get('nome', ''),
+                    'situacao': dados.get('situacao', 'Ativo')
+                })
+
+            return JsonResponse({'valido': False, 'mensagem': f'Registro {tipo} não encontrado ou inativo.'}, status=404)
+
+        except requests.RequestException:
+            return JsonResponse({'valido': False, 'mensagem': 'Erro ao conectar com o serviço de validação.'}, status=500)

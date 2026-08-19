@@ -79,7 +79,7 @@
                     {% csrf_token %}
 
                     <div class="form-group">
-                        <input type="text" name="nome" placeholder="Nome Completo" required>
+                        <input type="text" name="nome" id="nome_medico" placeholder="Nome Completo" required>
                     </div>
 
                     <div class="form-group">
@@ -139,6 +139,31 @@
             var input = document.getElementById("registro_num");
             input.placeholder = "Número do " + select.value;
         } 
+        
+    function consultarRegistroProfissional() {
+        const tipo = document.getElementById("tipo_registro").value;
+        const registro = document.getElementById("registro_num").value.trim();
+        const uf = document.querySelector('input[name="uf"]').value.trim();
+
+        if (registro.length >= 3 && uf.length === 2) {
+            fetch(`/api/validar-registro/?tipo=${tipo}&registro=${registro}&uf=${uf}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.valido && data.nome) {
+                        const campoNome = document.getElementById("nome_medico");
+                        campoNome.value = data.nome;
+                        campoNome.style.borderColor = "#10B981"; // Borda verde de confirmação
+                    }
+                })
+                .catch(err => console.error(`Erro ao validar ${tipo}:`, err));
+        }
+    }
+
+    // Escuta mudanças nos campos do registro e na UF
+    document.getElementById("registro_num").addEventListener("blur", consultarRegistroProfissional);
+    document.querySelector('input[name="uf"]').addEventListener("blur", consultarRegistroProfissional);
+    document.getElementById("tipo_registro").addEventListener("change", consultarRegistroProfissional);
+
     </script>
 </body>
 

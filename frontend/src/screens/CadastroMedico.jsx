@@ -8,39 +8,48 @@ function CadastroMedico() {
         tipo_registro: 'CRM', registro_num: '', uf: '',
         senha: '', confirmar_senha: ''
     });
-    const [erro, setErro] = useState('');
-    const [sucesso, setSucesso] = useState('');
-    const navigate = useNavigate();
+
+    const [carregandoCRM, setCarregandoCRM] = useState(false);
+
+    // Função para buscar e autopreencher o nome do médico
+    const validarEAutopreencherRegistro = async (tipo, registro, uf) => {
+        if (registro.length >= 3 && uf.length === 2) {
+            setCarregandoRegistro(true);
+            try {
+                const resposta = await axios.get(`/api/validar-registro/?tipo=${tipo}&registro=${registro}&uf=${uf}`);
+                if (resposta.data.valido && resposta.data.nome) {
+                    setFormData(prev => ({
+                        ...prev,
+                        nome: resposta.data.nome // Autopreenche o nome oficial do médico ou nutricionista
+                    }));
+                }
+            } catch (err) {
+                console.log(`Registro de ${tipo} não encontrado.`);
+            } finally {
+                setCarregandoRegistro(false);
+            }
+        }
+    };
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+        const { name, value } = e.target;
+        const novosDados = { ...formData, [name]: value };
+        setFormData(novosDados);
 
-    const lidarComCadastro = async (e) => {
-        e.preventDefault();
-        setErro('');
-        setSucesso('');
-
-        if (formData.senha !== formData.confirmar_senha) {
-            setErro('As senhas não coincidem.');
-            return;
-        }
-
-        try {
-            const resposta = await axios.post('/api/cadastro-medico/', formData);
-            if (resposta.data.sucesso) {
-                setSucesso('Conta criada com sucesso! Redirecionando...');
-                setTimeout(() => navigate('/login-medico'), 2000);
-            }
-        } catch (err) {
-            setErro('Erro ao criar conta. Verifique os dados ou tente novamente.');
+        if (['tipo_registro', 'registro_num', 'uf'].includes(name)) {
+            validarEAutopreencherRegistro(
+                novosDados.tipo_registro,
+                novosDados.registro_num,
+                novosDados.uf
+            );
         }
     };
+
 
     return (
         <div className="auth-page">
             <div className="auth-glass-card">
-                
+
                 <div className="auth-branding">
                     <div className="brand-logo">
                         <div className="logo-icon" style={{ background: 'rgba(16, 185, 129, 0.2)' }}>
