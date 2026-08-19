@@ -1,0 +1,16 @@
+{
+    "name": "Medidor de Glicemia",
+    "short_name": "Glicemia",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0e385c",
+    "theme_color": "#0e385c",
+    "icons": [
+        {
+            "src": "/static/glicemia/img/logo-app.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
