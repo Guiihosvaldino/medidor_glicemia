@@ -16,13 +16,10 @@ urlpatterns = [
     path('medicacoes/', views.medicacoes_view, name='medicacoes'),
     path('apagar-medicacao/<int:id>/', views.apagar_medicacao_view, name='apagar_medicacao'),
     path('apagar-taxa/<int:id>/', views.apagar_taxa_view, name='apagar_taxa'),
-    
     path('medicacoes-medico/<str:cpf>/', views.medicacoes_medico_view, name='medicacoes_medico'),
     path('apagar-medicacao-medico/<int:id>/<str:cpf>/', views.apagar_medicacao_medico_view, name='apagar_medicacao_medico'),
     path('apagar-taxa-medico/<int:id>/<str:cpf>/', views.apagar_taxa_medico_view, name='apagar_taxa_medico'),
     path('api/validar-registro/', views.validar_registro_profissional, name='validar_registro'),
-    
-
     
     # Recuperação de Senha
     path('recuperar-senha/', 
