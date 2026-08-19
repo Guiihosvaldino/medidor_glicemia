@@ -2,9 +2,19 @@
   "expo": {
     "name": "Medidor de Glicemia",
     "slug": "medidor-de-glicemia",
+    "icon": "./src/assets/logo-app.png",
+    "splash": {
+      "image": "./src/assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0e385c"
+    },
     "version": "1.0.0",
     "sdkVersion": "57.0.0",
-    "platforms": ["android", "ios", "web"],
+    "platforms": [
+      "android",
+      "ios",
+      "web"
+    ],
     "userInterfaceStyle": "automatic",
     "extra": {
       "eas": {
@@ -14,8 +24,21 @@
     "android": {
       "package": "com.guiiholiveira.medidordeglicemia",
       "versionCode": 1,
-      "permissions": ["INTERNET"]
+      "permissions": [
+        "INTERNET"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/logo-app.png",
+        "backgroundColor": "#0e385c"
+      },
+      "splash": {
+        "image": "./src/assets/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#0e385c"
+      }
     },
-    "assetBundlePatterns": ["**/*"]
+    "assetBundlePatterns": [
+      "**/*"
+    ]
   }
 }
