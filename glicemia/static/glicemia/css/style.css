@@ -176,7 +176,8 @@ body {
     transition: var(--transition);
 }
 
-.sidebar-link:hover, .sidebar-link.active {
+.sidebar-link:hover,
+.sidebar-link.active {
     background: var(--azul-principal);
     color: white;
 }
@@ -210,25 +211,27 @@ body {
     .app-container {
         flex-direction: column;
     }
-    
+
     .sidebar {
         position: fixed;
         top: 0;
-        left: -260px; /* Escondido por padrão */
+        left: -260px;
+        /* Escondido por padrão */
         width: 260px;
         height: 100vh;
         z-index: 1000;
         transition: left 0.3s ease;
         box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
     }
-    
+
     .sidebar.open {
         left: 0;
     }
-    
+
     .main-content {
         margin-left: 0;
-        padding: 60px 15px 15px 15px; /* Espaço para o botão hambúrguer no topo */
+        padding: 60px 15px 15px 15px;
+        /* Espaço para o botão hambúrguer no topo */
     }
 
     /* Botão Menu Hambúrguer */
@@ -244,12 +247,13 @@ body {
         border-radius: 8px;
         padding: 10px;
         cursor: pointer;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 }
 
 .menu-toggle {
-    display: none; /* Escondido no desktop */
+    display: none;
+    /* Escondido no desktop */
 }
 
 /* Overlay para fechar o menu ao clicar fora */
@@ -260,7 +264,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 999;
 }
 
@@ -1197,11 +1201,73 @@ tbody tr:last-child td {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Se quiser ocultar o cabeçalho e rodapé em telas pequenas / WebView */
+@media (max-width: 768px) {
+
+    header.app-header,
+    footer.app-footer {
+        display: none !important;
+    }
+}
+
+/* ── Fixes para WebView ── */
+
+/* Força o body a ocupar toda a altura da tela (viewport) */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Ajusta o container principal para ocupar o espaço todo */
+body>div {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Garante que os elementos de conteúdo também preencham o espaço */
+body>div>* {
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Opcional: Oculta o rodapé e o cabeçalho em telas muito pequenas (mobile) */
+@media (max-width: 600px) {
+
+    header,
+    footer {
+        display: none !important;
+    }
+
+    /* Ajusta o conteúdo principal para ocupar a altura toda */
+    body>div>*:not(header):not(footer) {
+        height: 100% !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
 }
