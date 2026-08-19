@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { SafeAreaView, StyleSheet, View, Text, ActivityIndicator, Pressable, Linking, Platform } from 'react-native';
+import { StyleSheet, SafeAreaView, ActivityIndicator, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
 
@@ -8,43 +8,27 @@ const WEB_URL = 'https://medidorglicemia-production.up.railway.app';
 export default function App() {
   return (
     <SafeAreaView style={styles.container}>
-      {/* Ajusta a barra de status do celular */}
+      {/* Barra de status clara para fundo escuro */}
       <StatusBar style="light" />
 
-      {/* Renderiza iframe se for na Web, ou WebView Nativa de Tela Cheia no Android/iOS */}
-      {Platform.OS === 'web' ? (
-        <View style={{ flex: 1 }}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Medidor de Glicemia</Text>
-            <Text style={styles.subtitle}>Acesso via Navegador Web</Text>
+      <WebView
+        source={{ uri: WEB_URL }}
+        startInLoadingState={true}
+        renderLoading={() => (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#10B981" />
           </View>
-
-          <iframe
-            src={WEB_URL}
-            style={{ width: '100%', height: '100%', border: 'none', flex: 1 }}
-            title="Medidor de Glicemia Web"
-          />
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Se preferir abrir diretamente no navegador:</Text>
-            <Pressable onPress={() => Linking.openURL(WEB_URL)} style={styles.linkButton}>
-              <Text style={styles.linkText}>Abrir em nova aba</Text>
-            </Pressable>
-          </View>
-        </View>
-      ) : (
-        <WebView
-          source={{ uri: WEB_URL }}
-          startInLoadingState={true}
-          renderLoading={() => (
-            <ActivityIndicator size="large" color="#10B981" style={styles.loading} />
-          )}
-          style={styles.webview}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          scalesPageToFit={true}
-        />
-      )}
+        )}
+        style={styles.webview}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        scalesPageToFit={true}
+        injectedJavaScript={`
+          document.body.style.margin = '0';
+          document.body.style.padding = '0';
+          true;
+        `}
+      />
     </SafeAreaView>
   );
 }
@@ -57,47 +41,14 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
   },
-  loading: {
+  loadingContainer: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -20 }, { translateY: -20 }],
-  },
-  // Estilos mantidos para visualização em modo Web
-  header: {
-    padding: 16,
-    backgroundColor: '#1E293B',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#0F172A',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#F8FAFC',
-  },
-  subtitle: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 4,
-  },
-  footer: {
-    padding: 12,
-    backgroundColor: '#1E293B',
-    alignItems: 'center',
-  },
-  footerText: {
-    color: '#94A3B8',
-    fontSize: 12,
-  },
-  linkButton: {
-    marginTop: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    backgroundColor: '#0284C7',
-    borderRadius: 6,
-  },
-  linkText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 12,
   },
 });
