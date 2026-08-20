@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'django_sendgrid_v5',
 ]
 
 REST_FRAMEWORK = {
@@ -155,19 +156,15 @@ except ImportError:
 # Configurações de E-mail (Recuperação de Senha)
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 
-if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
-    # Produção / SMTP Ativo (Usando SSL na porta 465 para evitar timeout na nuvem)
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 465))
-    EMAIL_USE_TLS = False
-    EMAIL_USE_SSL = True
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+if SENDGRID_API_KEY:
+    # Usa a API HTTPS do SendGrid (Sem riscos de timeout de SMTP)
+    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'seuemail@dominiosuaempresa.com')
+    SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 else:
-    # Desenvolvimento Local (Caso as variáveis do Railway não sejam lidas)
+    # Desenvolvimento Local
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Configuração de arquivos de mídia (Uploads como fotos de perfil)
