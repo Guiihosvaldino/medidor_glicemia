@@ -153,18 +153,21 @@ except ImportError:
     pass  # Em desenvolvimento local sem cloudinary instalado, ignora
 
 # Configurações de E-mail (Recuperação de Senha)
-if os.environ.get('EMAIL_HOST_USER'):
-    # Produção (Render)
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    # Produção / SMTP Ativo (Usando SSL na porta 465 para evitar timeout na nuvem)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
-    EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
-    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 465))
+    EMAIL_USE_TLS = False
+    EMAIL_USE_SSL = True
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 else:
-    # Desenvolvimento Local (imprime o e-mail no terminal para facilitar os testes)
+    # Desenvolvimento Local (Caso as variáveis do Railway não sejam lidas)
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Configuração de arquivos de mídia (Uploads como fotos de perfil)
