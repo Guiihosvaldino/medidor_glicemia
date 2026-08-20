@@ -17,6 +17,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 import json
 from rest_framework.authtoken.models import Token
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 from .models import PerfilUsuario, PerfilMedico, Medicao, Medicamento, TaxaCorrecao, AutorizacaoAcesso
@@ -1075,3 +1077,31 @@ def validar_registro_profissional(request):
 
     except requests.RequestException:
         return JsonResponse({'valido': False, 'mensagem': 'Erro na verificação.'}, status=500)
+        
+def esqueci_senha_medico(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        # 1. Aqui você verifica se o médico existe no banco
+        # medico = Medico.objects.filter(email=email).first()
+        
+        # 2. Exemplo de link de redefinição (substitua pelo seu link/token real)
+        link_redefinicao = "https://seu-app.up.railway.app/redefinir-senha-medico/"
+
+        # 3. Disparo do e-mail via SendGrid
+        try:
+            send_mail(
+                subject='Recuperação de Senha - Medidor de Glicemia',
+                message=f'Olá! Clique no link a seguir para redefinir sua senha: {link_redefinicao}',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,  # Força o Django a exibir erro caso o envio falhe
+            )
+            messages.success(request, 'E-mail de recuperação enviado com sucesso!')
+        except Exception as e:
+            print(f"Erro ao enviar e-mail: {e}")
+            messages.error(request, 'Falha ao enviar o e-mail. Tente novamente.')
+
+        return render(request, 'glicemia/esqueci_senha_medico.html')
+
+    return render(request, 'glicemia/esqueci_senha_medico.html')
