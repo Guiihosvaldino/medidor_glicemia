@@ -1,13 +1,18 @@
 from django.contrib import admin
-from .models import PerfilUsuario, PerfilMedico, AutorizacaoAcesso, Medicao, Medicamento, TaxaCorrecao
+from .models import PerfilUsuario, PerfilMedico
+
+# Personalização do cabeçalho do painel
+admin.site.site_header = "Painel Administrativo - Medidor de Glicemia"
+admin.site.site_title = "Medidor de Glicemia Admin"
+admin.site.index_title = "Gerenciamento de Usuários e Acessos"
 
 @admin.register(PerfilUsuario)
 class PacienteAdmin(admin.ModelAdmin):
-    # Exibe o último acesso na tabela de pacientes
+    # Lista exibida para os Pacientes
     list_display = ('get_username', 'get_full_name', 'get_email', 'get_last_login', 'get_date_joined')
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'user__email', 'cpf')
 
-    @admin.display(description='Usuário')
+    @admin.display(description='Usuário / E-mail')
     def get_username(self, obj):
         return obj.user.username
 
@@ -15,7 +20,7 @@ class PacienteAdmin(admin.ModelAdmin):
     def get_full_name(self, obj):
         return obj.user.get_full_name() or obj.user.username
 
-    @admin.display(description='E-mail')
+    @admin.display(description='E-mail de Contato')
     def get_email(self, obj):
         return obj.user.email
 
@@ -25,18 +30,18 @@ class PacienteAdmin(admin.ModelAdmin):
             return obj.user.last_login.strftime('%d/%m/%Y %H:%M')
         return "Nunca acessou"
 
-    @admin.display(description='Cadastrado em')
+    @admin.display(description='Data do Cadastro')
     def get_date_joined(self, obj):
         return obj.user.date_joined.strftime('%d/%m/%Y')
 
 
 @admin.register(PerfilMedico)
 class MedicoAdmin(admin.ModelAdmin):
-    # Exibe o último acesso na tabela de médicos
-    list_display = ('crm', 'uf', 'get_username', 'get_full_name', 'get_email', 'get_last_login')
+    # Lista exibida para os Médicos (separado dos Pacientes)
+    list_display = ('get_username', 'get_full_name', 'crm', 'uf', 'get_email', 'get_last_login')
     search_fields = ('crm', 'user__username', 'user__first_name', 'user__last_name', 'user__email')
 
-    @admin.display(description='Usuário')
+    @admin.display(description='Usuário / E-mail')
     def get_username(self, obj):
         return obj.user.username
 
@@ -44,7 +49,7 @@ class MedicoAdmin(admin.ModelAdmin):
     def get_full_name(self, obj):
         return obj.user.get_full_name() or obj.user.username
 
-    @admin.display(description='E-mail')
+    @admin.display(description='E-mail de Contato')
     def get_email(self, obj):
         return obj.user.email
 
@@ -53,19 +58,3 @@ class MedicoAdmin(admin.ModelAdmin):
         if obj.user.last_login:
             return obj.user.last_login.strftime('%d/%m/%Y %H:%M')
         return "Nunca acessou"
-
-
-@admin.register(AutorizacaoAcesso)
-class AutorizacaoAcessoAdmin(admin.ModelAdmin):
-    list_display = ('medico', 'paciente', 'status', 'criado_em')
-    list_filter = ('status',)
-
-
-@admin.register(Medicao)
-class MedicaoAdmin(admin.ModelAdmin):
-    list_display = ('usuario', 'valor', 'tipo', 'data', 'hora')
-    list_filter = ('tipo', 'data')
-
-
-admin.site.register(Medicamento)
-admin.site.register(TaxaCorrecao)
