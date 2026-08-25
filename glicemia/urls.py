@@ -50,6 +50,36 @@ urlpatterns = [
          ), 
          name='password_reset_complete'),
 
+    # Recuperação de Senha - Médico
+    path('recuperar-senha-medico/', 
+         auth_views.PasswordResetView.as_view(
+             template_name='glicemia/password_reset_medico_form.html',
+             email_template_name='glicemia/password_reset_email.html',
+             subject_template_name='glicemia/password_reset_subject.txt',
+             success_url='/recuperar-senha-medico/enviado/'
+         ), 
+         name='password_reset_medico'),
+         
+    path('recuperar-senha-medico/enviado/', 
+         auth_views.PasswordResetDoneView.as_view(
+             template_name='glicemia/password_reset_medico_done.html'
+         ), 
+         name='password_reset_medico_done'),
+         
+    path('recuperar-senha-medico/<uidb64>/<token>/', 
+         auth_views.PasswordResetConfirmView.as_view(
+             template_name='glicemia/password_reset_medico_confirm.html',
+             success_url='/recuperar-senha-medico/completo/'
+         ), 
+         name='password_reset_medico_confirm'),
+         
+    path('recuperar-senha-medico/completo/', 
+         auth_views.PasswordResetCompleteView.as_view(
+             template_name='glicemia/password_reset_medico_complete.html'
+         ), 
+         name='password_reset_medico_complete'),
+
+
 
     path('login-medico/', views.login_medico_view, name='login_medico'),
     
