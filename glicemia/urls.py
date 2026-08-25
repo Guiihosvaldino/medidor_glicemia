@@ -54,7 +54,7 @@ urlpatterns = [
     path('recuperar-senha-medico/', 
          auth_views.PasswordResetView.as_view(
              template_name='glicemia/password_reset_medico_form.html',
-             email_template_name='glicemia/password_reset_email.html',
+             email_template_name='glicemia/password_reset_medico_email.html',
              subject_template_name='glicemia/password_reset_subject.txt',
              success_url='/recuperar-senha-medico/enviado/'
          ), 
