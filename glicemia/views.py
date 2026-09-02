@@ -7,7 +7,7 @@ from django.db.models import Avg, Count
 from django.contrib import messages
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-# Imports do ReportLab para a geração do PDF
+# Imports do ReportLab para a geraﾃｧﾃ｣o do PDF
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -41,30 +41,33 @@ def cadastro_view(request):
         # Cria o perfil acoplado com CPF e Data de Nascimento
         PerfilUsuario.objects.create(user=user, cpf=cpf, data_nascimento=data_nasc)
         
-        messages.success(request, 'Cadastro realizado com sucesso! Faça seu login.')
-        return redirect('login')
+        # Faz o login automático
+        auth_login(request, user)
+        
+        messages.success(request, 'Conta criada com sucesso! Bem-vindo(a).')
+        return redirect('dashboard')
 
     return render(request, 'glicemia/cadastro.html')
 
 # --- VIEW: LOGIN DO PACIENTE (Nome exato procurado pelas suas URLs) ---
 
-@csrf_exempt  # 🌟 1. ESSA LINHA É OBRIGATÓRIA AQUI PARA MATAR O ERRO 403!
+@csrf_exempt  # – 1. ESSA LINHA É OBRIGATÓRIA AQUI PARA MATAR O ERRO 403!
 def login_view(request):
     if request.method == 'POST':
-        # 🌟 2. Tratamento para ler o JSON que o React (Axios) envia
+        # �検 2. Tratamento para ler o JSON que o React (Axios) envia
         if request.content_type == 'application/json':
             try:
                 dados = json.loads(request.body)
-                print(f"Tentativa de login para o usuário: {dados.get('username')}")  # 🌟 ISSO VAI MOSTRAR NO SEU TERMINAL O QUE CHEGOU!
+                print(f"Tentativa de login para o usuﾃ｡rio: {dados.get('username')}")  # �検 ISSO VAI MOSTRAR NO SEU TERMINAL O QUE CHEGOU!
                 
-                # Tenta pegar 'email', se não achar, tenta pegar 'username'
+                # Tenta pegar 'email', se nﾃ｣o achar, tenta pegar 'username'
                 email = dados.get('email') or dados.get('username')
                 senha = dados.get('senha') or dados.get('password')
                 
             except json.JSONDecodeError:
-                return JsonResponse({'error': 'Dados inválidos'}, status=400)
+                return JsonResponse({'error': 'Dados invﾃ｡lidos'}, status=400)
         else:
-            # Mantém compatibilidade com formulário comum
+            # Mantﾃｩm compatibilidade com formulﾃ｡rio comum
             email = request.POST.get('email')
             senha = request.POST.get('senha')
         
@@ -75,13 +78,13 @@ def login_view(request):
             
             if is_medico:
                 if request.content_type == 'application/json':
-                    return JsonResponse({'error': 'Área exclusiva para pacientes.'}, status=403)
-                messages.error(request, 'Esta área é exclusiva para pacientes.')
+                    return JsonResponse({'error': 'ﾃ〉ea exclusiva para pacientes.'}, status=403)
+                messages.error(request, 'Esta ﾃ｡rea ﾃｩ exclusiva para pacientes.')
                 return redirect('login') 
             
             auth_login(request, user)
             
-            # 🌟 3. Para o React: cria/obtém um Token de autenticação e retorna no JSON
+            # �検 3. Para o React: cria/obtﾃｩm um Token de autenticaﾃｧﾃ｣o e retorna no JSON
             if request.content_type == 'application/json':
                 token, _ = Token.objects.get_or_create(user=user)
                 return JsonResponse({
@@ -104,8 +107,8 @@ def login_view(request):
 # --- @login_required(login_url='login') ---
 @csrf_exempt
 def dashboard_view(request):
-    # --- AUTENTICAÇÃO VIA TOKEN PARA O REACT ---
-    # Se a requisição não veio com sessão autenticada, tenta autenticar via Token
+    # --- AUTENTICAﾃ�グ VIA TOKEN PARA O REACT ---
+    # Se a requisiﾃｧﾃ｣o nﾃ｣o veio com sessﾃ｣o autenticada, tenta autenticar via Token
     if not request.user.is_authenticated:
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
         if auth_header.startswith('Token '):
@@ -116,17 +119,17 @@ def dashboard_view(request):
             except Token.DoesNotExist:
                 pass
     
-    # Garante que o usuário está autenticado antes de filtrar no banco
+    # Garante que o usuﾃ｡rio estﾃ｡ autenticado antes de filtrar no banco
     if not request.user.is_authenticated:
         return JsonResponse({
             'sucesso': False, 
-            'error': 'Sessão encerrada ou usuário não autenticado no servidor.'
+            'error': 'Sessﾃ｣o encerrada ou usuﾃ｡rio nﾃ｣o autenticado no servidor.'
         }, status=401)
 
-    # Determina quais dados de usuário devem ser mostrados
+    # Determina quais dados de usuﾃ｡rio devem ser mostrados
     target_user = request.user
     
-    # Se for um médico visualizando um paciente, o ID do paciente estará na sessão
+    # Se for um mﾃｩdico visualizando um paciente, o ID do paciente estarﾃ｡ na sessﾃ｣o
     if request.session.get('paciente_id'):
         try:
             target_user = User.objects.get(id=request.session['paciente_id'])
@@ -135,12 +138,12 @@ def dashboard_view(request):
             target_user = request.user
             
     hoje = datetime.now()
-    # Pegamos o valor que veio do React ou do HTML (pode ser texto ou número)
+    # Pegamos o valor que veio do React ou do HTML (pode ser texto ou nﾃｺmero)
     mes_cru = request.POST.get('mes', request.GET.get('mes', hoje.month))
     
-    # Criamos um dicionário para converter o nome do mês para o número correto
+    # Criamos um dicionﾃ｡rio para converter o nome do mﾃｪs para o nﾃｺmero correto
     meses_map = {
-        'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+        'Janeiro': 1, 'Fevereiro': 2, 'Marﾃｧo': 3, 'Abril': 4,
         'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
         'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
     }
@@ -155,7 +158,7 @@ def dashboard_view(request):
             mes_selecionado = hoje.month
     ano_selecionado = int(request.POST.get('ano', request.GET.get('ano', hoje.year)))
 
-    # Filtra as medições do banco de dados
+    # Filtra as mediﾃｧﾃｵes do banco de dados
     medicoes = Medicao.objects.filter(
         usuario=request.user,
         data__month=mes_selecionado,
@@ -195,7 +198,7 @@ def dashboard_view(request):
             'nome': request.user.first_name or request.user.username,
         })
     
-    # Para requisições tradicionais do navegador (templates HTML)
+    # Para requisiﾃｧﾃｵes tradicionais do navegador (templates HTML)
     medicoes_grafico = medicoes.order_by('data', 'hora')
     labels_grafico = [f"{m.data.strftime('%d/%m')}" for m in medicoes_grafico]
     valores_grafico = [m.valor for m in medicoes_grafico]
@@ -215,10 +218,10 @@ def dashboard_view(request):
     }
     return render(request, 'glicemia/dashboard.html', contexto)
 
-# --- VIEW: NOVA MEDIÇÃO ---
+# --- VIEW: NOVA MEDIﾃ�グ ---
 @csrf_exempt
 def nova_medicao_view(request):
-    # Autenticação via Token para o React
+    # Autenticaﾃｧﾃ｣o via Token para o React
     if not request.user.is_authenticated:
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
         if auth_header.startswith('Token '):
@@ -230,7 +233,7 @@ def nova_medicao_view(request):
                 pass
 
     if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Não autenticado.'}, status=401)
+        return JsonResponse({'error': 'Nﾃ｣o autenticado.'}, status=401)
 
     if request.method == 'POST':
         # Suporte a JSON (React) e form-data (HTML)
@@ -238,7 +241,7 @@ def nova_medicao_view(request):
             try:
                 dados = json.loads(request.body)
             except json.JSONDecodeError:
-                return JsonResponse({'error': 'Dados inválidos.'}, status=400)
+                return JsonResponse({'error': 'Dados invﾃ｡lidos.'}, status=400)
             valor = dados.get('valor')
             data = dados.get('data')
             hora = dados.get('hora')
@@ -251,7 +254,7 @@ def nova_medicao_view(request):
             tipo = request.POST.get('tipo_medicao')
             notas = request.POST.get('notas', '')
 
-        # Cria a medição usando os nomes corretos dos campos do modelo
+        # Cria a mediﾃｧﾃ｣o usando os nomes corretos dos campos do modelo
         Medicao.objects.create(
             usuario=request.user,
             valor=valor,
@@ -266,7 +269,7 @@ def nova_medicao_view(request):
         try:
             valor_num = float(valor)
             if valor_num < 70:
-                alerta = 'Atenção! Sua glicemia está baixa (hipoglicemia). Recomendado subir a glicemia.'
+                alerta = 'Atenﾃｧﾃ｣o! Sua glicemia estﾃ｡ baixa (hipoglicemia). Recomendado subir a glicemia.'
             elif valor_num > 180:
                 taxas = TaxaCorrecao.objects.filter(usuario=request.user)
                 dose_recommended = None
@@ -281,21 +284,21 @@ def nova_medicao_view(request):
                             break
                 
                 if dose_recommended is not None:
-                    alerta = f'Atenção! Sua glicemia está alta (hiperglicemia). Dose de correção recomendada: {dose_recommended} UI.'
+                    alerta = f'Atenﾃｧﾃ｣o! Sua glicemia estﾃ｡ alta (hiperglicemia). Dose de correﾃｧﾃ｣o recomendada: {dose_recommended} UI.'
                 else:
-                    alerta = 'Atenção! Sua glicemia está alta (hiperglicemia). Recomendado tomar insulina ou procurar o médico.'
+                    alerta = 'Atenﾃｧﾃ｣o! Sua glicemia estﾃ｡ alta (hiperglicemia). Recomendado tomar insulina ou procurar o mﾃｩdico.'
         except (ValueError, TypeError):
             pass
         
         # Se veio do React, retorna JSON
         content_type = request.META.get('CONTENT_TYPE', '') or request.content_type or ''
         if 'application/json' in content_type:
-            resposta = {'success': True, 'message': 'Medição registrada com sucesso!'}
+            resposta = {'success': True, 'message': 'Mediﾃｧﾃ｣o registrada com sucesso!'}
             if alerta:
                 resposta['alerta'] = alerta
             return JsonResponse(resposta)
         
-        messages.success(request, "Nova medição registrada com sucesso!")
+        messages.success(request, "Nova mediﾃｧﾃ｣o registrada com sucesso!")
         if alerta:
             messages.warning(request, alerta)
             
@@ -307,14 +310,14 @@ def logout_view(request):
     return redirect('login')
 
 # =====================================================================
-#             PORTAL DO MÉDICO: BUSCA E DIRECIONAMENTO
+#             PORTAL DO Mﾃ吋ICO: BUSCA E DIRECIONAMENTO
 # =====================================================================
 
 @login_required(login_url='login')
 def dashboard_medico_view(request):
-    """ Painel inicial do médico para buscar qualquer paciente por CPF """
+    """ Painel inicial do mﾃｩdico para buscar qualquer paciente por CPF """
     if not hasattr(request.user, 'perfil_medico'):
-        messages.error(request, 'Acesso restrito a médicos.')
+        messages.error(request, 'Acesso restrito a mﾃｩdicos.')
         return redirect('dashboard')
         
     paciente_encontrado = None
@@ -325,14 +328,14 @@ def dashboard_medico_view(request):
             perfil_p = PerfilUsuario.objects.get(cpf=cpf_busca)
             paciente_encontrado = perfil_p.user
         except PerfilUsuario.DoesNotExist:
-            messages.error(request, 'Paciente com este CPF não foi encontrado.')
+            messages.error(request, 'Paciente com este CPF nﾃ｣o foi encontrado.')
             
     return render(request, 'glicemia/dashboard_medico.html', {'paciente_encontrado': paciente_encontrado})
 
 
 @login_required(login_url='login')
 def acessar_paciente_view(request, paciente_id):
-    """ Vincula o paciente na sessão do médico para que ele veja as telas dele """
+    """ Vincula o paciente na sessﾃ｣o do mﾃｩdico para que ele veja as telas dele """
     if not hasattr(request.user, 'perfil_medico'):
         return redirect('dashboard')
         
@@ -343,7 +346,7 @@ def acessar_paciente_view(request, paciente_id):
 
 @login_required(login_url='login')
 def fechar_consulta_view(request):
-    """ Desvincula o paciente e devolve o médico ao painel de buscas """
+    """ Desvincula o paciente e devolve o mﾃｩdico ao painel de buscas """
     if 'paciente_id' in request.session:
         del request.session['paciente_id']
     return redirect('dashboard_medico')
@@ -353,7 +356,7 @@ def fechar_consulta_view(request):
 # --- VIEW: EXPORTAR PDF ---
 @csrf_exempt
 def exportar_pdf_view(request):
-    # Autenticação via Token para o React
+    # Autenticaﾃｧﾃ｣o via Token para o React
     if not request.user.is_authenticated:
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
         if auth_header.startswith('Token '):
@@ -365,14 +368,14 @@ def exportar_pdf_view(request):
                 pass
     
     if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Não autenticado.'}, status=401)
+        return JsonResponse({'error': 'Nﾃ｣o autenticado.'}, status=401)
 
     hoje = datetime.now()
     
-    # Converte nome do mês por extenso para número (suporte ao React)
+    # Converte nome do mﾃｪs por extenso para nﾃｺmero (suporte ao React)
     mes_cru = request.GET.get('mes', str(hoje.month))
     meses_map = {
-        'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+        'Janeiro': 1, 'Fevereiro': 2, 'Marﾃｧo': 3, 'Abril': 4,
         'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
         'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
     }
@@ -409,13 +412,13 @@ def exportar_pdf_view(request):
     titulo_estilo = ParagraphStyle('Titulo', parent=estilos['Heading1'], fontSize=20, leading=24, textColor=colors.HexColor('#1A365D'), spaceAfter=12)
     subtitulo_estilo = ParagraphStyle('Subtitulo', parent=estilos['Normal'], fontSize=11, leading=14, spaceAfter=6)
     
-    elementos.append(Paragraph("Relatório de Acompanhamento Glicêmico", titulo_estilo))
+    elementos.append(Paragraph("Relatﾃｳrio de Acompanhamento Glicﾃｪmico", titulo_estilo))
     elementos.append(Paragraph(f"<b>Paciente:</b> {target_user.first_name}", subtitulo_estilo))
-    elementos.append(Paragraph(f"<b>Período:</b> {mes:02d}/{ano}", subtitulo_estilo))
-    elementos.append(Paragraph(f"<b>Média Glicêmica do Mês:</b> {media_glicose} mg/dL | <b>Glicada Estimada (A1C):</b> {glicada_estimada}%", subtitulo_estilo))
+    elementos.append(Paragraph(f"<b>Perﾃｭodo:</b> {mes:02d}/{ano}", subtitulo_estilo))
+    elementos.append(Paragraph(f"<b>Mﾃｩdia Glicﾃｪmica do Mﾃｪs:</b> {media_glicose} mg/dL | <b>Glicada Estimada (A1C):</b> {glicada_estimada}%", subtitulo_estilo))
     elementos.append(Spacer(1, 15))
 
-    dados_tabela = [['Data', 'Hora', 'Valor (mg/dL)', 'Tipo de Medição', 'Observações']]
+    dados_tabela = [['Data', 'Hora', 'Valor (mg/dL)', 'Tipo de Mediﾃｧﾃ｣o', 'Observaﾃｧﾃｵes']]
     
     for med in medicoes:
         data_formatada = med.data.strftime('%d/%m/%Y')
@@ -429,7 +432,7 @@ def exportar_pdf_view(request):
         ])
 
     if len(dados_tabela) == 1:
-        dados_tabela.append(['Nenhum registro encontrado para este mês.', '', '', '', ''])
+        dados_tabela.append(['Nenhum registro encontrado para este mﾃｪs.', '', '', '', ''])
 
     tabela_pdf = Table(dados_tabela, colWidths=[80, 60, 90, 110, 180])
     tabela_pdf.setStyle(TableStyle([
@@ -449,7 +452,7 @@ def exportar_pdf_view(request):
     doc.build(elementos)
     return response
 
-# --- VIEW: APAGAR MEDIÇÃO (PROTEGIDA) ---
+# --- VIEW: APAGAR MEDIﾃ�グ (PROTEGIDA) ---
 @login_required(login_url='login')
 def apagar_medicao_view(request, id):
     target_user = request.user
@@ -458,7 +461,7 @@ def apagar_medicao_view(request, id):
 
     medicao = get_object_or_404(Medicao, id=id, usuario=target_user)
     medicao.delete()
-    messages.warning(request, 'Medição excluída com sucesso!')
+    messages.warning(request, 'Mediﾃｧﾃ｣o excluﾃｭda com sucesso!')
     return redirect('dashboard')
 
 @login_required(login_url='login')
@@ -481,13 +484,13 @@ def editar_medicao_view(request, id):
             try:
                 medicao.valor = float(valor)
             except ValueError:
-                messages.error(request, 'Valor inválido.')
+                messages.error(request, 'Valor invﾃ｡lido.')
                 return redirect('editar_medicao', id=id)
         if tipo:
             medicao.tipo = tipo
         medicao.observacao = observacao
         medicao.save()
-        messages.success(request, 'Medição atualizada com sucesso!')
+        messages.success(request, 'Mediﾃｧﾃ｣o atualizada com sucesso!')
         return redirect('dashboard')
     contexto = {
         'medicao': medicao,
@@ -495,13 +498,13 @@ def editar_medicao_view(request, id):
     }
     return render(request, 'glicemia/editar_medicao.html', contexto)
 
-# --- VIEW: MEDICAÇÕES (LISTAR E ADICIONAR) ---
+# --- VIEW: MEDICAﾃ�髭S (LISTAR E ADICIONAR) ---
 @login_required(login_url='login')
 def medicacoes_view(request):
     target_user = request.user
     medico_logado = None
     
-    # Se for um médico editando o prontuário de um paciente
+    # Se for um mﾃｩdico editando o prontuﾃ｡rio de um paciente
     if request.session.get('paciente_id'):
         target_user = get_object_or_404(User, id=request.session['paciente_id'])
         if hasattr(request.user, 'perfil_medico'):
@@ -527,9 +530,9 @@ def medicacoes_view(request):
                 nome=nome,
                 dose_ui=dose_ui_val,
                 observacao=observacao,
-                medico_editor=medico_logado # Atribui o médico caso seja ele quem esteja adicionando
+                medico_editor=medico_logado # Atribui o mﾃｩdico caso seja ele quem esteja adicionando
             )
-            messages.success(request, 'Medicação registrada com sucesso!')
+            messages.success(request, 'Medicaﾃｧﾃ｣o registrada com sucesso!')
             
         elif tipo_form == 'taxa':
             gmin = request.POST.get('glicemia_min')
@@ -546,11 +549,11 @@ def medicacoes_view(request):
                     glicemia_min=gmin_val,
                     glicemia_max=gmax_val,
                     dose_ui=dose_val,
-                    medico_editor=medico_logado # Atribui o médico caso seja ele quem esteja configurando
+                    medico_editor=medico_logado # Atribui o mﾃｩdico caso seja ele quem esteja configurando
                 )
-                messages.success(request, 'Taxa de correção registrada com sucesso!')
+                messages.success(request, 'Taxa de correﾃｧﾃ｣o registrada com sucesso!')
             except ValueError:
-                messages.error(request, 'Valores numéricos inválidos para a taxa de correção.')
+                messages.error(request, 'Valores numﾃｩricos invﾃ｡lidos para a taxa de correﾃｧﾃ｣o.')
 
         return redirect('medicacoes')
 
@@ -565,7 +568,7 @@ def medicacoes_view(request):
     }
     return render(request, 'glicemia/medicacoes.html', contexto)
 
-# --- VIEW: APAGAR MEDICAÇÃO ---
+# --- VIEW: APAGAR MEDICAﾃ�グ ---
 @login_required(login_url='login')
 def apagar_medicacao_view(request, id):
     target_user = request.user
@@ -574,10 +577,10 @@ def apagar_medicacao_view(request, id):
 
     medicamento = get_object_or_404(Medicamento, id=id, usuario=target_user)
     medicamento.delete()
-    messages.warning(request, 'Medicação excluída com sucesso!')
+    messages.warning(request, 'Medicaﾃｧﾃ｣o excluﾃｭda com sucesso!')
     return redirect('medicacoes')
 
-# --- VIEW: APAGAR TAXA DE CORREÇÃO ---
+# --- VIEW: APAGAR TAXA DE CORREﾃ�グ ---
 @login_required(login_url='login')
 def apagar_taxa_view(request, id):
     target_user = request.user
@@ -586,37 +589,37 @@ def apagar_taxa_view(request, id):
 
     taxa = get_object_or_404(TaxaCorrecao, id=id, usuario=target_user)
     taxa.delete()
-    messages.warning(request, 'Taxa de correção excluída com sucesso!')
+    messages.warning(request, 'Taxa de correﾃｧﾃ｣o excluﾃｭda com sucesso!')
     return redirect('medicacoes')
 
-# --- VIEW: CADASTRO DO PROFISSIONAL (MÉDICO / NUTRICIONISTA) ---
+# --- VIEW: CADASTRO DO PROFISSIONAL (Mﾃ吋ICO / NUTRICIONISTA) ---
 def cadastro_medico_view(request):
     if request.method == 'POST':
         nome = request.POST.get('nome')
         email = request.POST.get('email')
         cpf = request.POST.get('cpf')
         telefone = request.POST.get('telefone')
-        tipo_registro = request.POST.get('tipo_registro') # Pega se é CRM ou CRN
-        crm = request.POST.get('crm') # Número do registro
+        tipo_registro = request.POST.get('tipo_registro') # Pega se ﾃｩ CRM ou CRN
+        crm = request.POST.get('crm') # Nﾃｺmero do registro
         uf = request.POST.get('uf', 'MG')
         senha = request.POST.get('senha')
         confirmar_senha = request.POST.get('confirmar_senha')
 
         if User.objects.filter(username=email).exists():
-            messages.error(request, 'Este e-mail já está cadastrado.')
+            messages.error(request, 'Este e-mail jﾃ｡ estﾃ｡ cadastrado.')
             return redirect('cadastro_medico')
 
-        # Como você pediu para não validar nada complexo ainda, vamos apenas criar o usuário
+        # Como vocﾃｪ pediu para nﾃ｣o validar nada complexo ainda, vamos apenas criar o usuﾃ｡rio
         user = User.objects.create_user(username=email, email=email, password=senha, first_name=nome)
         
         # Cria o perfil associado. Se o seu modelo PerfilMedico aceitar essas colunas, 
-        # você pode salvá-las aqui. Se não, salve apenas o básico por enquanto:
+        # vocﾃｪ pode salvﾃ｡-las aqui. Se nﾃ｣o, salve apenas o bﾃ｡sico por enquanto:
         PerfilMedico.objects.create(user=user, crm=crm, uf=uf)
         
-        messages.success(request, 'Cadastro realizado com sucesso! Faça seu login.')
+        messages.success(request, 'Cadastro realizado com sucesso! Faﾃｧa seu login.')
         return redirect('login_medico')
 
-    # ATENÇÃO AQUI: Este return TEM que ficar fora do bloco 'if', alinhado com o 'def'
+    # ATENﾃ�グ AQUI: Este return TEM que ficar fora do bloco 'if', alinhado com o 'def'
     return render(request, 'glicemia/cadastro_medico.html')
 
 
@@ -638,7 +641,7 @@ def dashboard_medico_view(request):
     ano_selecionado = int(request.GET.get('ano', hoje.year))
 
     if cpf_buscado:
-        # Tenta achar o paciente de várias formas para evitar o erro de cadastro antigo
+        # Tenta achar o paciente de vﾃ｡rias formas para evitar o erro de cadastro antigo
         cpf_limpo = ''.join(filter(str.isdigit, cpf_buscado))
         user_paciente = None
         
@@ -655,7 +658,7 @@ def dashboard_medico_view(request):
             ).first()
 
         if user_paciente:
-            # Filtra medições pelo mês e ano selecionados
+            # Filtra mediﾃｧﾃｵes pelo mﾃｪs e ano selecionados
             medicoes_qs = Medicao.objects.filter(
                 usuario=user_paciente,
                 data__month=mes_selecionado,
@@ -667,7 +670,7 @@ def dashboard_medico_view(request):
             media_val = round(media_val, 2) if media_val else 0
             glicada_estimada = round((media_val + 46.7) / 28.7, 2) if media_val > 0 else 0
 
-            # Calcula Tempo no Alvo dinâmico
+            # Calcula Tempo no Alvo dinﾃ｢mico
             total_para_alvo = medicoes_qs.count()
             if total_para_alvo > 0:
                 hipo_count = medicoes_qs.filter(valor__lt=70).count()
@@ -681,7 +684,7 @@ def dashboard_medico_view(request):
                 pct_hiper = 0
                 pct_alvo = 100
 
-            # Prepara dados do gráfico (medições ordenadas por data/hora para o gráfico)
+            # Prepara dados do grﾃ｡fico (mediﾃｧﾃｵes ordenadas por data/hora para o grﾃ｡fico)
             medicoes_grafico = medicoes_qs.order_by('data', 'hora')
             labels_grafico = [f"{m.data.strftime('%d/%m')}" for m in medicoes_grafico]
             valores_grafico = [m.valor for m in medicoes_grafico]
@@ -706,7 +709,7 @@ def dashboard_medico_view(request):
         else:
             labels_grafico = []
             valores_grafico = []
-            messages.error(request, 'Paciente não localizado. Tente buscar pelo E-mail, Nome ou CPF correto.')
+            messages.error(request, 'Paciente nﾃ｣o localizado. Tente buscar pelo E-mail, Nome ou CPF correto.')
     else:
         labels_grafico = []
         valores_grafico = []
@@ -733,11 +736,11 @@ def login_medico_view(request):
         user = authenticate(request, username=email, password=senha)
         
         if user is not None:
-            # 🛑 VALIDAÇÃO SEGURANÇA: Garante que ele REALMENTE é médico/nutricionista
+            # �尅 VALIDAﾃ�グ SEGURANﾃ②: Garante que ele REALMENTE ﾃｩ mﾃｩdico/nutricionista
             is_medico = PerfilMedico.objects.filter(user=user).exists()
             
             if not is_medico:
-                messages.error(request, 'Acesso negado. Este painel é exclusivo para Médicos e Nutricionistas.')
+                messages.error(request, 'Acesso negado. Este painel ﾃｩ exclusivo para Mﾃｩdicos e Nutricionistas.')
                 return redirect('login_medico')
             
             # Se for profissional, entra com sucesso
@@ -750,7 +753,7 @@ def login_medico_view(request):
     return render(request, 'glicemia/login_medico.html')
 
 
-# --- VIEW: LOGOUT DO MÉDICO ---
+# --- VIEW: LOGOUT DO Mﾃ吋ICO ---
 def logout_medico_view(request):
     from django.contrib.auth import logout
     from django.shortcuts import redirect
@@ -768,7 +771,7 @@ def medicacoes_medico_view(request, cpf):
         try:
             user_paciente = User.objects.get(username=cpf_limpo)
         except User.DoesNotExist:
-            messages.error(request, 'Paciente não encontrado.')
+            messages.error(request, 'Paciente nﾃ｣o encontrado.')
             return redirect('dashboard_medico')
 
     medico_logado = getattr(request.user, 'perfil_medico', None)
@@ -794,7 +797,7 @@ def medicacoes_medico_view(request, cpf):
                 observacao=observacao,
                 medico_editor=medico_logado
             )
-            messages.success(request, 'Medicação registrada para o paciente com sucesso!')
+            messages.success(request, 'Medicaﾃｧﾃ｣o registrada para o paciente com sucesso!')
         
         elif tipo_form == 'taxa':
             gmin = request.POST.get('glicemia_min')
@@ -813,9 +816,9 @@ def medicacoes_medico_view(request, cpf):
                     dose_ui=dose_val,
                     medico_editor=medico_logado
                 )
-                messages.success(request, 'Taxa de correção registrada com sucesso!')
+                messages.success(request, 'Taxa de correﾃｧﾃ｣o registrada com sucesso!')
             except ValueError:
-                messages.error(request, 'Valores numéricos inválidos para a taxa de correção.')
+                messages.error(request, 'Valores numﾃｩricos invﾃ｡lidos para a taxa de correﾃｧﾃ｣o.')
 
         return redirect('medicacoes_medico', cpf=cpf)
 
@@ -837,7 +840,7 @@ def medicacoes_medico_view(request, cpf):
 def apagar_medicacao_medico_view(request, id, cpf):
     medicamento = get_object_or_404(Medicamento, id=id)
     medicamento.delete()
-    messages.warning(request, 'Medicação excluída com sucesso!')
+    messages.warning(request, 'Medicaﾃｧﾃ｣o excluﾃｭda com sucesso!')
     return redirect('medicacoes_medico', cpf=cpf)
 
 
@@ -845,7 +848,7 @@ def apagar_medicacao_medico_view(request, id, cpf):
 def apagar_taxa_medico_view(request, id, cpf):
     taxa = get_object_or_404(TaxaCorrecao, id=id)
     taxa.delete()
-    messages.warning(request, 'Taxa de correção excluída com sucesso!')
+    messages.warning(request, 'Taxa de correﾃｧﾃ｣o excluﾃｭda com sucesso!')
     return redirect('medicacoes_medico', cpf=cpf)
 
 @login_required(login_url='login')
@@ -860,7 +863,7 @@ def perfil_view(request):
             perfil.save()
             messages.success(request, 'Foto de perfil atualizada com sucesso!')
             
-        # Atualizar dados básicos
+        # Atualizar dados bﾃ｡sicos
         nome = request.POST.get('first_name')
         email = request.POST.get('email')
         cpf = request.POST.get('cpf')
@@ -875,7 +878,7 @@ def perfil_view(request):
             
         if atualizado:
             user.save()
-            messages.success(request, 'Dados de usuário atualizados.')
+            messages.success(request, 'Dados de usuﾃ｡rio atualizados.')
             
         if cpf and perfil and cpf != perfil.cpf:
             perfil.cpf = cpf
@@ -893,11 +896,11 @@ def perfil_view(request):
 
 @login_required(login_url='login_medico')
 def perfil_medico_view(request):
-    """Perfil exclusivo do MÉDICO"""
+    """Perfil exclusivo do Mﾃ吋ICO"""
     user = request.user
 
     if not hasattr(user, 'perfil_medico'):
-        messages.error(request, 'Acesso restrito a médicos.')
+        messages.error(request, 'Acesso restrito a mﾃｩdicos.')
         return redirect('login_medico')
 
     perfil = user.perfil_medico
@@ -908,7 +911,7 @@ def perfil_medico_view(request):
             perfil.save()
             messages.success(request, 'Foto de perfil atualizada com sucesso!')
             
-        # Atualizar dados básicos
+        # Atualizar dados bﾃ｡sicos
         nome = request.POST.get('first_name')
         email = request.POST.get('email')
         crm = request.POST.get('crm')
@@ -924,7 +927,7 @@ def perfil_medico_view(request):
             
         if atualizado:
             user.save()
-            messages.success(request, 'Dados de usuário atualizados.')
+            messages.success(request, 'Dados de usuﾃ｡rio atualizados.')
             
         perfil_atualizado = False
         if crm and crm != perfil.crm:
@@ -963,7 +966,7 @@ def solicitacoes_paciente_view(request):
                 messages.success(request, 'Acesso negado/revogado com sucesso!')
             autorizacao.save()
         except AutorizacaoAcesso.DoesNotExist:
-            messages.error(request, 'Solicitação não encontrada.')
+            messages.error(request, 'Solicitaﾃｧﾃ｣o nﾃ｣o encontrada.')
             
         return redirect('solicitacoes')
 
@@ -981,7 +984,7 @@ def solicitacoes_paciente_view(request):
 
 @login_required(login_url='login')
 def pesquisa_mes_view(request):
-    """ View para o paciente pesquisar histórico de glicemia por mês e ano """
+    """ View para o paciente pesquisar histﾃｳrico de glicemia por mﾃｪs e ano """
     from django.db.models import Avg, Count
     import json
     
@@ -989,7 +992,7 @@ def pesquisa_mes_view(request):
     mes_cru = request.POST.get('mes', request.GET.get('mes', hoje.month))
     
     meses_map = {
-        'Janeiro': 1, 'Fevereiro': 2, 'Março': 3, 'Abril': 4,
+        'Janeiro': 1, 'Fevereiro': 2, 'Marﾃｧo': 3, 'Abril': 4,
         'Maio': 5, 'Junho': 6, 'Julho': 7, 'Agosto': 8,
         'Setembro': 9, 'Outubro': 10, 'Novembro': 11, 'Dezembro': 12
     }
@@ -1033,9 +1036,9 @@ def pesquisa_mes_view(request):
 
 @login_required(login_url='login_medico')
 def pacientes_autorizados_view(request):
-    """ View para o médico ver a lista de pacientes que o autorizaram """
+    """ View para o mﾃｩdico ver a lista de pacientes que o autorizaram """
     if not hasattr(request.user, 'perfil_medico'):
-        messages.error(request, 'Acesso restrito a médicos.')
+        messages.error(request, 'Acesso restrito a mﾃｩdicos.')
         return redirect('dashboard')
         
     autorizacoes = AutorizacaoAcesso.objects.filter(medico=request.user, status='aprovado').select_related('paciente', 'paciente__perfil')
@@ -1057,7 +1060,7 @@ def validar_registro_profissional(request):
     uf = request.GET.get('uf', '').strip().upper()
 
     if not registro or not uf:
-        return JsonResponse({'valido': False, 'mensagem': 'Registro e UF são obrigatórios.'}, status=400)
+        return JsonResponse({'valido': False, 'mensagem': 'Registro e UF sﾃ｣o obrigatﾃｳrios.'}, status=400)
 
     try:
         if tipo == 'CRM':
@@ -1072,32 +1075,32 @@ def validar_registro_profissional(request):
                     'situacao': dados.get('situacao', 'Ativo')
                 })
 
-        # Caso seja CRN ou não encontre o CRM
-        return JsonResponse({'valido': False, 'mensagem': f'Registro {tipo} não encontrado.'}, status=404)
+        # Caso seja CRN ou nﾃ｣o encontre o CRM
+        return JsonResponse({'valido': False, 'mensagem': f'Registro {tipo} nﾃ｣o encontrado.'}, status=404)
 
     except requests.RequestException:
-        return JsonResponse({'valido': False, 'mensagem': 'Erro na verificação.'}, status=500)
+        return JsonResponse({'valido': False, 'mensagem': 'Erro na verificaﾃｧﾃ｣o.'}, status=500)
         
 def esqueci_senha_medico(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         
-        # 1. Aqui você verifica se o médico existe no banco
+        # 1. Aqui vocﾃｪ verifica se o mﾃｩdico existe no banco
         # medico = Medico.objects.filter(email=email).first()
         
-        # 2. Exemplo de link de redefinição (substitua pelo seu link/token real)
+        # 2. Exemplo de link de redefiniﾃｧﾃ｣o (substitua pelo seu link/token real)
         link_redefinicao = "https://seu-app.up.railway.app/redefinir-senha-medico/"
 
         # 3. Disparo do e-mail via SendGrid
         try:
             send_mail(
-                subject='Recuperação de Senha - Medidor de Glicemia',
-                message=f'Olá! Clique no link a seguir para redefinir sua senha: {link_redefinicao}',
+                subject='Recuperaﾃｧﾃ｣o de Senha - Medidor de Glicemia',
+                message=f'Olﾃ｡! Clique no link a seguir para redefinir sua senha: {link_redefinicao}',
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],
-                fail_silently=False,  # Força o Django a exibir erro caso o envio falhe
+                fail_silently=False,  # Forﾃｧa o Django a exibir erro caso o envio falhe
             )
-            messages.success(request, 'E-mail de recuperação enviado com sucesso!')
+            messages.success(request, 'E-mail de recuperaﾃｧﾃ｣o enviado com sucesso!')
         except Exception as e:
             print(f"Erro ao enviar e-mail: {e}")
             messages.error(request, 'Falha ao enviar o e-mail. Tente novamente.')
@@ -1105,3 +1108,16 @@ def esqueci_senha_medico(request):
         return render(request, 'glicemia/esqueci_senha_medico.html')
 
     return render(request, 'glicemia/esqueci_senha_medico.html')
+@login_required(login_url='login')
+def excluir_conta_view(request):
+    if request.method == 'POST':
+        senha = request.POST.get('senha')
+        if request.user.check_password(senha):
+            request.user.delete()
+            auth_logout(request)
+            messages.success(request, 'Sua conta foi exclu冝a permanentemente com sucesso.')
+            return redirect('login')
+        else:
+            messages.error(request, 'Senha incorreta. A conta n縊 foi exclu冝a.')
+            return redirect('excluir_conta')
+    return render(request, 'glicemia/excluir_conta.html')
