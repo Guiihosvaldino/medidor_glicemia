@@ -18,9 +18,9 @@
             
             <div class="auth-form-panel" style="width: 100%; padding: 2rem;">
                 <h2 style="color: #ef4444;">Excluir Conta 🗑️</h2>
-                <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 25px; line-height: 1.5;">
+                <p style="color: #475569; font-size: 0.95rem; margin-bottom: 25px; line-height: 1.5;">
                     <strong style="color: #ef4444;">Atenção:</strong> Você está prestes a excluir sua conta no aplicativo. <br><br>
-                    Esta ação é <strong style="color: white;">irreversível</strong>. Todos os seus dados, medições, histórico e acessos compartilhados com médicos serão apagados para sempre.
+                    Esta ação é <strong style="color: #0f172a;">irreversível</strong>. Todos os seus dados, medições, histórico e acessos compartilhados com médicos serão apagados para sempre.
                 </p>
 
                 {% if messages %}
@@ -36,15 +36,15 @@
                 <form method="POST" action="{% url 'excluir_conta' %}">
                     {% csrf_token %}
                     <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="senha" style="color: #cbd5e1; display: block; margin-bottom: 8px;">Para confirmar a exclusão, digite sua senha:</label>
-                        <input type="password" id="senha" name="senha" class="form-control" placeholder="Sua senha..." required>
+                        <label for="senha" style="color: #334155; display: block; margin-bottom: 8px; font-weight: bold;">PARA CONFIRMAR A EXCLUSÃO, DIGITE SUA SENHA:</label>
+                        <input type="password" id="senha" name="senha" class="form-control" placeholder="Sua senha..." required style="background: white; color: #333; border: 1px solid #cbd5e1;">
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%; background: #ef4444; border-color: #ef4444; margin-bottom: 15px;">
+                    <button type="submit" class="btn btn-primary" style="width: 100%; background: #ef4444; border-color: #ef4444; margin-bottom: 15px; color: white;">
                         ⚠️ Sim, Quero Excluir Minha Conta
                     </button>
                     
-                    <a href="{% url 'perfil' %}" class="btn" style="display: block; text-align: center; color: white; border: 1px solid #475569; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 500;">
+                    <a href="{% url 'perfil' %}" class="btn" style="display: block; text-align: center; color: #475569; border: 1px solid #94a3b8; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 500; background: transparent;">
                         Cancelar e Voltar ao Perfil
                     </a>
                 </form>

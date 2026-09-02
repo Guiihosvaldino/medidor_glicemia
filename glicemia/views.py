@@ -35,6 +35,10 @@ def cadastro_view(request):
         if User.objects.filter(username=email).exists():
             messages.error(request, 'Este e-mail já está cadastrado.')
             return redirect('cadastro')
+            
+        if PerfilUsuario.objects.filter(cpf=cpf).exists():
+            messages.error(request, 'Este CPF já está cadastrado no sistema.')
+            return redirect('cadastro')
 
         # Cria o usuário padrão do Django
         user = User.objects.create_user(username=email, email=email, password=senha, first_name=nome)
