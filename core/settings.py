@@ -152,19 +152,20 @@ try:
 except ImportError:
     pass  # Em desenvolvimento local sem cloudinary instalado, ignora
 
-# Configurações de E-mail (Recuperação de Senha)
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# Configuração de E-mail via Servidor Oficial Microsoft (Hotmail/Outlook)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-mail.outlook.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+# Credenciais do Hotmail lidas das variáveis do Railway
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
 
-if SENDGRID_API_KEY:
-    # Usa a API HTTPS do SendGrid (Sem riscos de timeout de SMTP)
-    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'seuemail@dominiosuaempresa.com')
-    SENDGRID_SANDBOX_MODE_IN_DEBUG = False
-else:
-    # Desenvolvimento Local
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Remetente padrão
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Configuração de arquivos de mídia (Uploads como fotos de perfil)
 MEDIA_URL = '/media/'
