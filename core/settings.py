@@ -184,3 +184,6 @@ else:
 
 # IMPORTANTE: Garanta que o cookie de sessão seja visível para o domínio localhost
 SESSION_COOKIE_DOMAIN = None  # Deixe None para que ele se ajuste ao localhost automaticamente
+# Manter sess�o do paciente conectada por 30 dias (PWA offline)
+SESSION_COOKIE_AGE = 2592000
+

@@ -9,6 +9,15 @@
     <link rel="stylesheet" href="{% static 'glicemia/css/style.css' %}?v={% now 'U' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" type="image/png" href="{% static 'glicemia/logo-app.png' %}">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('Service Worker registrado!', reg))
+            .catch(err => console.log('Erro no Service Worker', err));
+        });
+      }
+    </script>
 </head>
 
 <body>
@@ -116,7 +125,7 @@
         <!-- New Measurement Form -->
         <div class="secao">
             <h3><span class="section-icon">➕</span> Registrar Nova Medição</h3>
-            <form method="POST" action="{% url 'nova_medicao' %}" class="form-inline">
+            <form id="formNovaMedicao" method="POST" action="{% url 'nova_medicao' %}" class="form-inline">
                 {% csrf_token %}
                 <div class="form-group">
                     <label>Valor (mg/dL)</label>
@@ -366,7 +375,81 @@
             }
         });
     </script>
+    <!-- Offline Sync Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('formNovaMedicao');
+            
+            // Tenta sincronizar se tiver algo na fila ao carregar
+            sincronizarFila();
+
+            if(form) {
+                form.addEventListener('submit', function(e) {
+                    if (!navigator.onLine) {
+                        e.preventDefault(); // Evita recarregar a tela
+                        
+                        // Coleta dados
+                        const formData = new FormData(form);
+                        const medicao = {};
+                        formData.forEach((value, key) => { medicao[key] = value; });
+                        
+                        // Salva offline
+                        let fila = JSON.parse(localStorage.getItem('filaMedicoes') || '[]');
+                        fila.push(medicao);
+                        localStorage.setItem('filaMedicoes', JSON.stringify(fila));
+                        
+                        alert('Sem conexão com a internet! ⚠️\nSua medição foi salva no celular e será enviada automaticamente assim que reconectar.');
+                        form.reset();
+                    }
+                });
+            }
+
+            // Ouve quando a internet volta
+            window.addEventListener('online', sincronizarFila);
+
+            function sincronizarFila() {
+                if (!navigator.onLine) return;
+                
+                let fila = JSON.parse(localStorage.getItem('filaMedicoes') || '[]');
+                if (fila.length === 0) return;
+
+                console.log('Sincronizando ' + fila.length + ' medições...');
+                const actionUrl = "{% url 'nova_medicao' %}";
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                // Envia a primeira e continua recursivamente
+                function enviarProxima() {
+                    if (fila.length === 0) {
+                        localStorage.removeItem('filaMedicoes');
+                        alert('✅ Medições salvas offline foram sincronizadas com sucesso!');
+                        window.location.reload();
+                        return;
+                    }
+                    
+                    const med = fila[0];
+                    const formData = new FormData();
+                    for (const key in med) { formData.append(key, med[key]); }
+
+                    fetch(actionUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-CSRFToken': csrftoken }
+                    })
+                    .then(response => {
+                        if(response.ok || response.redirected) {
+                            fila.shift(); // Remove a que enviou
+                            localStorage.setItem('filaMedicoes', JSON.stringify(fila));
+                            enviarProxima();
+                        } else {
+                            console.error('Erro ao salvar medição');
+                        }
+                    })
+                    .catch(e => console.error('Falha na rede ao sincronizar', e));
+                }
+
+                enviarProxima();
+            }
+        });
+    </script>
 </body>
-
-
 </html>

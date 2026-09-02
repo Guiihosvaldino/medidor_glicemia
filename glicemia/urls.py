@@ -92,3 +92,5 @@ urlpatterns = [
     path('pacientes-autorizados/', views.pacientes_autorizados_view, name='pacientes_autorizados'),
     path('pesquisa-mes/', views.pesquisa_mes_view, name='pesquisa_mes'),
 ]
+from django.views.generic import TemplateView
+urlpatterns += [path('service-worker.js', TemplateView.as_view(template_name='glicemia/service-worker.js', content_type='application/javascript'), name='service-worker')]
